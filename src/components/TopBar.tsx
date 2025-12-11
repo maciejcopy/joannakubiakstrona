@@ -21,12 +21,22 @@ const TopBar: React.FC = () => {
           {/* Social media i ikony */}
           <div className="flex items-center space-x-3">
             <div className="flex space-x-2">
-              <div className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-light-green transition-colors">
+              <a
+                href="https://www.facebook.com/profile.php?id=61584924865771"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-light-green transition-colors cursor-pointer"
+              >
                 <Facebook className="w-4 h-4 text-white" />
-              </div>
-              <div className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-light-green transition-colors">
+              </a>
+              <a
+                href="https://www.instagram.com/joannakubiak_psycholog/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-light-green transition-colors cursor-pointer"
+              >
                 <Instagram className="w-4 h-4 text-white" />
-              </div>
+              </a>
             </div>
           </div>
         </div>
