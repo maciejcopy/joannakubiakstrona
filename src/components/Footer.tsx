@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Mail, MapPin, Heart } from 'lucide-react';
+import { Phone, Mail, MapPin, Heart, Facebook, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -45,6 +45,15 @@ const Footer: React.FC = () => {
                  <MapPin className="w-5 h-5 text-light-green mr-3" />
                   <span className="text-gray-600">Konsultacje online i stacjonarne</span>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-4 mt-6">
+                <a href="https://www.facebook.com/profile.php?id=61584924865771" target="_blank" rel="noopener noreferrer" className="text-light-green hover:text-dark-green transition-colors">
+                  <Facebook className="w-6 h-6" />
+                </a>
+                <a href="https://www.instagram.com/joannakubiak_psycholog/" target="_blank" rel="noopener noreferrer" className="text-light-green hover:text-dark-green transition-colors">
+                  <Instagram className="w-6 h-6" />
+                </a>
               </div>
             </div>
           </div>
