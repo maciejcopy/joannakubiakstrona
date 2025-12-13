@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Phone, Mail, MapPin, Send } from 'lucide-react';
+iimport React, { useState } from 'react';
+import { Phone, Mail, MapPin, Send, Wifi } from 'lucide-react';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -21,29 +21,71 @@ const Contact: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 ROZPOCZĘCIE DEBUGOWANIA FORMULARZA');
+    console.log('1️⃣ Formularz został wysłany');
+    
     setIsLoading(true);
     setError('');
 
+    // SPRAWDZENIE 1: Zmienne środowiskowe
+    console.log('2️⃣ SPRAWDZENIE ZMIENNYCH:');
+    console.log('   VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('   VITE_SUPABASE_ANON_KEY exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+    console.log('   VITE_SUPABASE_ANON_KEY length:', import.meta.env.VITE_SUPABASE_ANON_KEY?.length);
+
     // Check if Supabase is configured
     if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      console.log('❌ BŁĄD: Supabase nie skonfigurowany');
       setError('Formularz nie jest jeszcze skonfigurowany. Skontaktuj się bezpośrednio: kontakt@joannakubiakpsycholog.pl');
       setIsLoading(false);
       return;
     }
 
+    // SPRAWDZENIE 2: URL i Headers
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    };
+    
+    console.log('3️⃣ SPRAWDZENIE URL I HEADERS:');
+    console.log('   Function URL:', functionUrl);
+    console.log('   Headers:', headers);
+    console.log('   Form data:', formData);
+
+    // SPRAWDZENIE 3: Test OPTIONS (CORS preflight)
+    console.log('4️⃣ TEST OPTIONS (CORS):');
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+      const optionsResponse = await fetch(functionUrl, {
+        method: 'OPTIONS',
+        headers: headers,
+      });
+      console.log('   OPTIONS status:', optionsResponse.status);
+      console.log('   OPTIONS ok:', optionsResponse.ok);
+      console.log('   OPTIONS headers:', Object.fromEntries(optionsResponse.headers.entries()));
+    } catch (optionsError) {
+      console.log('   ❌ OPTIONS failed:', optionsError);
+    }
+    
+    try {
+      console.log('5️⃣ WYSYŁANIE POST REQUEST:');
+      const response = await fetch(functionUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
+        headers: headers,
         body: JSON.stringify(formData),
       });
 
+      console.log('6️⃣ ODPOWIEDŹ SERWERA:');
+      console.log('   Status:', response.status);
+      console.log('   OK:', response.ok);
+      console.log('   Status Text:', response.statusText);
+      console.log('   Headers:', Object.fromEntries(response.headers.entries()));
+      
       const result = await response.json();
+      console.log('   Response data:', result);
 
       if (response.ok) {
+        console.log('✅ SUKCES!');
         setIsSubmitted(true);
         // Reset form after 5 seconds
         setTimeout(() => {
@@ -51,11 +93,17 @@ const Contact: React.FC = () => {
           setFormData({ name: '', email: '', phone: '', message: '' });
         }, 5000);
       } else {
-        setError(result.error || 'Wystąpił błąd podczas wysyłania wiadomości');
+        console.log('❌ API ERROR:', result);
+        setError(result.error || `Błąd ${response.status}: ${result.details || 'Wystąpił błąd podczas wysyłania wiadomości'}`);
       }
     } catch (err) {
-      setError('Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie.');
+      console.log('❌ NETWORK ERROR:', err);
+      console.log('   Error name:', err.name);
+      console.log('   Error message:', err.message);
+      console.log('   Error stack:', err.stack);
+      setError(`Błąd sieci: ${err.message}. Sprawdź połączenie internetowe.`);
     } finally {
+      console.log('🏁 KONIEC DEBUGOWANIA');
       setIsLoading(false);
     }
   };
@@ -122,6 +170,26 @@ const Contact: React.FC = () => {
                   <div>
                     <p className="font-semibold text-dark-green">Adres 2</p>
                     <p className="text-gray-600">Med+ Centrum Medyczne Poznań</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="bg-light-green p-3 rounded-full flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-dark-green" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-dark-green">Adres 3</p>
+                    <p className="text-gray-600">Centrum Zdrowia AGVITA</p>
+                    <p className="text-gray-600">ul. Promienista 6, Poznań</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="bg-light-green p-3 rounded-full flex-shrink-0">
+                    <Wifi className="w-6 h-6 text-dark-green" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-dark-green">Konsultacja online</p>
                   </div>
                 </div>
               </div>
