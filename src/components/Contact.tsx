@@ -1,4 +1,4 @@
-iimport React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Send, Wifi } from 'lucide-react';
 
 const Contact: React.FC = () => {
