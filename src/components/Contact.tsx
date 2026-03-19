@@ -195,22 +195,8 @@ const Contact: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <h3 className="text-xl font-bold text-dark-green mb-4">Godziny pracy</h3>
-              <div className="space-y-2 text-gray-600">
-                <div className="flex justify-between">
-                  <span>Poniedziałek - Piątek</span>
-                  <span>9:00 - 18:00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sobota</span>
-                  <span>10:00 - 14:00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Niedziela</span>
-                  <span>Zamknięte</span>
-                </div>
-              </div>
+            <div className="bg-white rounded-2xl p-6 shadow-lg flex items-center justify-center text-center">
+              <h3 className="text-lg font-bold text-dark-green">Konsultacja 50 min - 200 zł</h3>
             </div>
           </div>
 
