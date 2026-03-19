@@ -27,28 +27,24 @@ const About: React.FC = () => {
                 </div>
               </div>
             </div>
-            
-            {/* Zdjęcie profilowe */}
-            <div className="flex justify-center lg:justify-start">
-              <div className="relative">
+
             {/* Opis - po prawej stronie */}
             <div className="text-left max-w-2xl">
               <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-6">
                 Witaj! Jestem Joanna
               </h2>
-              
+
               <div className="text-lg text-gray-700 leading-relaxed mb-8">
                 <p className="mb-4">
                   Jestem psychologiem dzieci i młodzieży, absolwentką Uczelni Biznesu i Nauk Stosowanych „Varsovia" w Warszawie, gdzie ukończyłam studia magisterskie ze specjalizacją w psychoterapii. Posiadam bogate doświadczenie zawodowe zdobyte w różnych placówkach oświatowych i prywatnych, które pozwoliło mi głęboko zrozumieć potrzeby i perspektywy moich młodych podopiecznych.
                 </p>
-                
-                <p>
+
+                <p className="mb-4">
                   W pracy z dziećmi i młodzieżą stosuję podejście holistyczne, łącząc techniki terapeutyczne z elastycznością dydaktyczną, co umożliwia mi skuteczną pomoc w odzyskaniu równowagi psychicznej i poczucia zadowolenia z życia. Swoje podejście do terapii stale aktualizuję poprzez liczne szkolenia, takie jak „Wykorzystanie techniki DBT w leczeniu zaburzeń borderline", „Zaburzenia osobowości u dzieci i młodzieży – proces diagnostyczny i prowadzenie terapii" oraz „Skuteczne metody i podejścia terapeutyczne".
                 </p>
               </div>
             </div>
-          </div>
-            </div>
+
           </div>
         </div>
       </div>
