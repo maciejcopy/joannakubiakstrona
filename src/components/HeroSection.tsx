@@ -9,7 +9,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section id="strona-glowna" className="bg-warm-beige py-16 lg:py-24">
+    <section id="strona-glowna" className="bg-warm-beige py-20 lg:py-28">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -17,9 +17,9 @@ const HeroSection: React.FC = () => {
             {/* Left side - text content - full width on mobile */}
             <div className="space-y-6 lg:order-1 w-full">
               <div className="mb-6">
-                <h1 className="font-bold text-dark-green leading-tight mb-6">
-                  <span className="text-2xl lg:text-3xl block">Nazywam się</span>
-                  <span className="text-4xl lg:text-6xl text-pastel-blue">Joanna Kubiak</span>
+                <h1 className="font-bold text-dark-green leading-tight mb-6 text-balance">
+                  <span className="text-xl lg:text-2xl block font-medium text-gray-500 mb-1">Nazywam się</span>
+                  <span className="text-4xl lg:text-6xl text-pastel-blue tracking-tight">Joanna Kubiak</span>
                 </h1>
               </div>
 
@@ -54,7 +54,7 @@ const HeroSection: React.FC = () => {
               {/* Przycisk CTA */}
               <button 
                 onClick={scrollToContact}
-                className="bg-pastel-blue text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="bg-pastel-blue text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-soft hover:shadow-xl transform hover:-translate-y-1 focus-visible:outline-offset-4"
               >
                 UMÓW KONSULTACJĘ
               </button>
@@ -63,16 +63,15 @@ const HeroSection: React.FC = () => {
             {/* Right side - image - hidden on mobile, visible on desktop */}
             <div className="hidden lg:flex justify-center lg:justify-end lg:order-2">
               <div className="relative">
-                <div className="w-80 h-96 lg:w-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl">
+                <div className="w-80 h-96 lg:w-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-soft ring-1 ring-black/5">
                   <img
                     src="/images/hero-image.webp"
                     alt="Joanna Kubiak - psycholog"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                {/* Dekoracyjne elementy */}
-                <div className="absolute -top-4 -left-4 w-20 h-20 bg-light-green rounded-full opacity-60"></div>
-                <div className="absolute -bottom-6 -right-6 w-16 h-16 bg-accent-orange rounded-full opacity-60"></div>
+                {/* Subtelny akcent dekoracyjny */}
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-light-green rounded-full opacity-50 -z-10"></div>
               </div>
             </div>
           </div>

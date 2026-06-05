@@ -17,7 +17,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-warm-beige shadow-sm sticky top-0 z-50">
+    <header className="bg-warm-beige shadow-soft sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           {/* Logo i nazwa */}
@@ -32,13 +32,13 @@ const Header: React.FC = () => {
           <nav className="hidden lg:flex space-x-8">
             <button
               onClick={() => scrollToSection('strona-glowna')}
-              className="text-gray-600 hover:text-light-green transition-colors duration-300 font-medium"
+              className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
             >
               Strona główna
             </button>
             <button
               onClick={() => scrollToSection('kontakt')}
-              className="text-gray-600 hover:text-light-green transition-colors duration-300 font-medium"
+              className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
             >
               Kontakt
             </button>
@@ -55,7 +55,7 @@ const Header: React.FC = () => {
 
         {/* Menu mobilne */}
         {isMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-200 py-6 shadow-lg">
+          <div className="lg:hidden bg-warm-beige border-t border-light-green py-6 shadow-soft">
             <nav className="flex flex-col space-y-2">
               <button
                 onClick={() => scrollToSection('strona-glowna')}

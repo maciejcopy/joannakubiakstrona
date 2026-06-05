@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* offset dla kotwic pod sticky headerem */
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: theme('fontFamily.serif');
+  }
+
+  /* Spójny, widoczny stan focus dla klawiatury */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid theme('colors.pastel-blue.DEFAULT');
+    outline-offset: 2px;
+  }
+}

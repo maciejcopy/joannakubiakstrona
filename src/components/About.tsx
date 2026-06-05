@@ -3,7 +3,7 @@ import { Award, Users, Heart } from 'lucide-react';
 
 const About: React.FC = () => {
   return (
-    <section id="o-mnie" className="py-16 bg-warm-beige">
+    <section id="o-mnie" className="py-20 lg:py-28 bg-light-green-bg">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -12,7 +12,7 @@ const About: React.FC = () => {
             <div className="flex justify-center lg:justify-start">
               <div className="relative">
                 {/* Gradientowa ramka */}
-                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-br from-pastel-blue via-light-green to-accent-orange p-1 shadow-2xl">
+                <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-br from-pastel-blue via-light-green to-accent-orange p-1 shadow-soft">
                   <div className="w-full h-full rounded-full overflow-hidden bg-white">
                     <img
                       src="/images/about-image.webp"
@@ -30,7 +30,7 @@ const About: React.FC = () => {
 
             {/* Opis - po prawej stronie */}
             <div className="text-left max-w-2xl">
-              <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-6 text-balance">
                 Witaj! Jestem Joanna
               </h2>
 

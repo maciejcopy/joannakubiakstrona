@@ -23,9 +23,14 @@ export default {
         // Drobne akcenty
         'accent-yellow': '#F4D34E',
         'accent-orange': '#E27B5E',
+
+        // Stany formularza
+        'error': '#B4453A',
+        'error-bg': '#FBEDEB',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Lora', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
