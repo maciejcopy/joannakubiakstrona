@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { Brain, Heart, GraduationCap, Globe, User, Stethoscope } from 'lucide-react';
+import { Brain, Heart, GraduationCap, Globe, User, Stethoscope, ChevronDown } from 'lucide-react';
 
 const Skills: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -20,25 +20,25 @@ const Skills: React.FC = () => {
   };
 
   return (
-    <section id="kompetencje" className="py-16 bg-warm-beige">
+    <section id="kompetencje" className="py-20 lg:py-28 bg-warm-beige">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           
           {/* Header sekcji */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4 text-balance">
               Informacje o specjalizacji
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto text-pretty">
               Poznaj moje obszary działania i specjalizacje
             </p>
           </div>
 
           {/* Siatka kafelków */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             
             {/* O mnie */}
-            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col">
+            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
               <div className="flex items-center mb-4">
                 <div className="text-light-green mr-3">
                   <User className="w-8 h-8" />
@@ -66,15 +66,16 @@ const Skills: React.FC = () => {
                 </div>
                 <button
                   onClick={toggleFirstVisitExpanded}
-                  className="text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 text-left"
+                  className="mt-3 inline-flex items-center gap-1 self-start text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline rounded"
                 >
-                  {isFirstVisitExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}
+                  <span>{isFirstVisitExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isFirstVisitExpanded ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
 
             {/* Obszary pracy */}
-            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col">
+            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
               <div className="flex items-center mb-4">
                 <div className="text-accent-orange mr-3">
                   <Heart className="w-8 h-8" />
@@ -107,15 +108,16 @@ const Skills: React.FC = () => {
                 </div>
                 <button
                   onClick={toggleAreasExpanded}
-                  className="text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 text-left"
+                  className="mt-3 inline-flex items-center gap-1 self-start text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline rounded"
                 >
-                  {isAreasExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}
+                  <span>{isAreasExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isAreasExpanded ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
 
             {/* Choroby/Specjalizacje */}
-            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col">
+            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
               <div className="flex items-center mb-4">
                 <div className="text-light-green mr-3">
                   <Stethoscope className="w-8 h-8" />
@@ -147,15 +149,16 @@ const Skills: React.FC = () => {
                 </div>
                 <button
                   onClick={toggleExpanded}
-                  className="text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 text-left"
+                  className="mt-3 inline-flex items-center gap-1 self-start text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline rounded"
                 >
-                  {isExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}
+                  <span>{isExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
 
             {/* Edukacja */}
-            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
               <div className="flex items-center mb-4">
                 <div className="text-accent-orange mr-3">
                   <GraduationCap className="w-8 h-8" />
@@ -175,7 +178,7 @@ const Skills: React.FC = () => {
             </div>
 
             {/* Znajomość języków */}
-            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
               <div className="flex items-center mb-4">
                <div className="text-light-green mr-3">
                   <Globe className="w-8 h-8" />
@@ -185,13 +188,13 @@ const Skills: React.FC = () => {
                 </h3>
               </div>
               <div className="text-gray-600 leading-relaxed">
-                <p className="mb-2">🇵🇱 Polski - język ojczysty</p>
-                <p>🇬🇧 Angielski</p>
+                <p className="mb-2">Polski — język ojczysty</p>
+                <p>Angielski</p>
               </div>
             </div>
 
             {/* Doświadczenie */}
-            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
               <div className="flex items-center mb-4">
                <div className="text-accent-orange mr-3">
                   <Brain className="w-8 h-8" />

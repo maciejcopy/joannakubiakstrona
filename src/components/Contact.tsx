@@ -109,11 +109,11 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <section id="kontakt" className="py-20 bg-warm-beige">
+    <section id="kontakt" className="py-20 lg:py-28 bg-light-green-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-dark-green mb-4">Kontakt</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4 text-balance">Kontakt</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto text-pretty">
             Skontaktuj się ze mną, aby umówić konsultację lub zadać pytania
           </p>
         </div>
@@ -121,7 +121,7 @@ const Contact: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
           <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-white rounded-2xl p-8 shadow-soft">
               <h3 className="text-2xl font-bold text-dark-green mb-6">Dane kontaktowe</h3>
               
               <div className="space-y-6">
@@ -148,7 +148,7 @@ const Contact: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-white rounded-2xl p-8 shadow-soft">
               <h3 className="text-xl font-bold text-dark-green mb-6">Lokalizacja</h3>
               
               <div className="space-y-6">
@@ -195,19 +195,19 @@ const Contact: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg flex items-center justify-center text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-soft flex items-center justify-center text-center">
               <h3 className="text-lg font-bold text-dark-green">Konsultacja 50 min - 200 zł</h3>
             </div>
           </div>
 
           {/* Contact Form */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="bg-white rounded-2xl p-8 shadow-soft">
             {!isSubmitted ? (
               <>
                 <h3 className="text-2xl font-bold text-dark-green mb-6">Napisz do mnie</h3>
                 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                  <div className="bg-error-bg border border-error/30 text-error px-4 py-3 rounded-lg mb-6">
                     {error}
                   </div>
                 )}
@@ -224,7 +224,7 @@ const Contact: React.FC = () => {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-green focus:border-transparent transition-colors"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors"
                       placeholder="Twoje imię i nazwisko"
                     />
                   </div>
@@ -240,7 +240,7 @@ const Contact: React.FC = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-green focus:border-transparent transition-colors"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors"
                       placeholder="twoj@email.com"
                     />
                   </div>
@@ -255,7 +255,7 @@ const Contact: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-green focus:border-transparent transition-colors"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors"
                       placeholder="+48 123 456 789"
                     />
                   </div>
@@ -271,7 +271,7 @@ const Contact: React.FC = () => {
                       onChange={handleChange}
                       required
                       rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-green focus:border-transparent transition-colors resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors resize-none"
                       placeholder="Opisz swoją sytuację lub zadaj pytanie..."
                     />
                   </div>

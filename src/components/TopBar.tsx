@@ -9,11 +9,11 @@ const TopBar: React.FC = () => {
           {/* Kontakt */}
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
-              <Phone className="w-4 h-4 text-light-green" />
+              <Phone className="w-4 h-4 text-dark-green" />
               <span className="text-gray-600">+48 729 933 833</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Mail className="w-4 h-4 text-light-green" />
+              <Mail className="w-4 h-4 text-dark-green" />
               <span className="text-gray-600">kontakt@joannakubiakpsycholog.pl</span>
             </div>
           </div>
@@ -25,7 +25,8 @@ const TopBar: React.FC = () => {
                 href="https://www.facebook.com/profile.php?id=61584924865771"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-light-green transition-colors cursor-pointer"
+                aria-label="Facebook - Joanna Kubiak"
+                className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-pastel-blue transition-colors cursor-pointer"
               >
                 <Facebook className="w-4 h-4 text-white" />
               </a>
@@ -33,7 +34,8 @@ const TopBar: React.FC = () => {
                 href="https://www.instagram.com/joannakubiak_psycholog/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-light-green transition-colors cursor-pointer"
+                aria-label="Instagram - Joanna Kubiak"
+                className="w-8 h-8 bg-dark-green rounded-full flex items-center justify-center hover:bg-pastel-blue transition-colors cursor-pointer"
               >
                 <Instagram className="w-4 h-4 text-white" />
               </a>
