@@ -1,4 +1,5 @@
 import React from 'react';
+import * as Sentry from '@sentry/react';
 import TopBar from './components/TopBar';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
