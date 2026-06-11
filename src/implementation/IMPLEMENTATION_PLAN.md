@@ -187,20 +187,20 @@ W tym planie **nie wdrażamy** integracji z Resend. Kod i konfiguracja powiadomi
 - [ ] Krok 2.4: Dodanie zmiennych CSS Shadcn do `src/index.css` wewnątrz klasy `.shadcn-theme`
 
 ### Krok 3: Projekt Bazy Danych Supabase (Tabele i RLS w nowym projekcie)
-- [ ] Krok 3.1: Utworzenie tabeli `profiles` (z polami adresowymi, prefixem i numerem telefonu)
-- [ ] Krok 3.2: Utworzenie tabeli `booking_statuses` (słownik statusów)
-- [ ] Krok 3.3: Utworzenie tabeli `payment_statuses` (słownik płatności)
-- [ ] Krok 3.4: Utworzenie tabeli `location_types` (słownik lokalizacji)
-- [ ] Krok 3.5: Utworzenie tabeli `visit_types` (typy wizyt)
-- [ ] Krok 3.6: Utworzenie tabeli `availability` (`recurrence_rule` jako JSONB)
-- [ ] Krok 3.7: Utworzenie tabeli `availability_exceptions` (`recurrence_rule` jako JSONB)
-- [ ] Krok 3.8: Utworzenie tabeli `bookings` (z powiązaniami słownikowymi i flagą `is_first_visit`)
-- [ ] Krok 3.9: Utworzenie tabeli `app_settings` (konfiguracja globalna)
-- [ ] Krok 3.10: Utworzenie tabeli `audit_logs` (dziennik zdarzeń)
-- [ ] Krok 3.11: Konfiguracja RLS (Row Level Security) dla wszystkich tabel w nowym projekcie
-- [ ] Krok 3.12: Wdrożenie wyzwalacza `on_auth_user_created`
-- [ ] Krok 3.13: Wdrożenie wyzwalacza `update_role_on_booking`
-- [ ] Krok 3.14: Wdrożenie wyzwalacza `check_is_first_visit`
+- [x] Krok 3.1: Utworzenie tabeli `profiles` (z polami adresowymi, prefixem i numerem telefonu)
+- [x] Krok 3.2: Utworzenie tabeli `booking_statuses` (słownik statusów)
+- [x] Krok 3.3: Utworzenie tabeli `payment_statuses` (słownik płatności)
+- [x] Krok 3.4: Utworzenie tabeli `location_types` (słownik lokalizacji)
+- [x] Krok 3.5: Utworzenie tabeli `visit_types` (typy wizyt)
+- [x] Krok 3.6: Utworzenie tabeli `availability` (`recurrence_rule` jako JSONB)
+- [x] Krok 3.7: Utworzenie tabeli `availability_exceptions` (`recurrence_rule` jako JSONB)
+- [x] Krok 3.8: Utworzenie tabeli `bookings` (z powiązaniami słownikowymi i flagą `is_first_visit`)
+- [x] Krok 3.9: Utworzenie tabeli `app_settings` (konfiguracja globalna)
+- [x] Krok 3.10: Utworzenie tabeli `audit_logs` (dziennik zdarzeń)
+- [x] Krok 3.11: Konfiguracja RLS (Row Level Security) dla wszystkich tabel w nowym projekcie
+- [x] Krok 3.12: Wdrożenie wyzwalacza `on_auth_user_created`
+- [x] Krok 3.13: Wdrożenie wyzwalacza `update_role_on_booking`
+- [x] Krok 3.14: Wdrożenie wyzwalacza `check_is_first_visit`
 
 ### Krok 4: Projekt Ścieżek i Routingu (Routing)
 - [ ] Krok 4.1: Konfiguracja głównego routera w `src/App.tsx` (stary kod formularza kontaktowego pozostaje nienaruszony)
