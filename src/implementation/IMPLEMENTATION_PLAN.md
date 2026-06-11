@@ -123,9 +123,6 @@ Projekt zakłada dynamiczną architekturę bazy danych PostgreSQL bez twardo kod
 - **`on_auth_user_created`**: Automatyczne tworzenie profilu w tabeli `profiles` po rejestracji w Supabase Auth.
 - **`update_role_on_booking`**: Automatyczna zmiana roli z `'user'` na `'client'` w tabeli `profiles` po pomyślnym utworzeniu pierwszej rezerwacji przez użytkownika.
 - **`check_is_first_visit`**: Wyzwalacz przed dodaniem nowej rezerwacji (`BEFORE INSERT`). System sprawdza, czy dany `client_id` posiada już inne rezerwacje o statusie potwierdzonym/zrealizowanym. Jeśli nie, automatycznie ustawia `is_first_visit` na `true`.
-- **Procedura Account Deletion (Procedura Usuwania Konta / Odrzucania Profilu)**: Funkcja `delete_user_account(user_id)` zapewniająca pełną procedurę usuwania danych zgodnie z RODO:
-  - Usunięcie konta z Supabase Auth.
-  - Usunięcie profilu z tabeli `profiles` LUB jego anonimizację (usunięcie danych osobowych i zastąpienie ich wartościami typu `'Anonimowy Klient'`), jeśli rezerwacje muszą zostać zachowane w celach statystyczno-rozliczeniowych.
 
 ---
 
@@ -167,7 +164,6 @@ W tym planie **nie wdrażamy** integracji z Resend. Kod i konfiguracja powiadomi
 
 ### Testy Automatyczne
 - Weryfikacja triggera ustawiającego flagę `is_first_visit` na `true` przy pierwszej rezerwacji oraz na `false` przy kolejnych.
-- Testowanie poprawności działania procedury usuwania konta/anonimizacji profili.
 
 ### Weryfikacja Manualna
 - Sprawdzenie poprawności połączenia z nowym projektem Supabase na nowych kluczach API.
@@ -205,7 +201,6 @@ W tym planie **nie wdrażamy** integracji z Resend. Kod i konfiguracja powiadomi
 - [ ] Krok 3.12: Wdrożenie wyzwalacza `on_auth_user_created`
 - [ ] Krok 3.13: Wdrożenie wyzwalacza `update_role_on_booking`
 - [ ] Krok 3.14: Wdrożenie wyzwalacza `check_is_first_visit`
-- [ ] Krok 3.15: Wdrożenie procedury `delete_user_account` (anonimizacja/usuwanie danych)
 
 ### Krok 4: Projekt Ścieżek i Routingu (Routing)
 - [ ] Krok 4.1: Konfiguracja głównego routera w `src/App.tsx` (stary kod formularza kontaktowego pozostaje nienaruszony)
