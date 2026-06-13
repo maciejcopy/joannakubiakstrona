@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, X, Sun } from 'lucide-react';
 
 const Header: React.FC = () => {
@@ -22,14 +23,16 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center py-6">
           {/* Logo i nazwa */}
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-dark-green">
-              mgr Joanna Kubiak
-            </h1>
-            <p className="text-sm text-gray-500">psycholog dzieci i młodzieży</p>
+            <Link to="/" className="hover:opacity-95 transition">
+              <h1 className="text-2xl sm:text-3xl font-bold text-dark-green font-serif">
+                mgr Joanna Kubiak
+              </h1>
+              <p className="text-sm text-gray-500">psycholog dzieci i młodzieży</p>
+            </Link>
           </div>
 
           {/* Nawigacja desktop */}
-          <nav className="hidden lg:flex space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             <button
               onClick={() => scrollToSection('strona-glowna')}
               className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
@@ -42,6 +45,18 @@ const Header: React.FC = () => {
             >
               Kontakt
             </button>
+            <Link
+              to="/auth/login"
+              className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
+            >
+              Panel / Logowanie
+            </Link>
+            <Link
+              to="/rezerwacja"
+              className="bg-[#48A7C9] text-white px-6 py-2.5 rounded-full font-semibold hover:bg-[#3A8BA8] transition-all duration-300 shadow-soft"
+            >
+              Zarezerwuj wizytę
+            </Link>
           </nav>
 
           {/* Przycisk menu mobilne */}
@@ -69,6 +84,20 @@ const Header: React.FC = () => {
               >
                 Kontakt
               </button>
+              <Link
+                to="/auth/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-left text-gray-700 hover:text-pastel-blue hover:bg-light-green-bg transition-all duration-300 font-medium py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center text-lg"
+              >
+                Panel / Logowanie
+              </Link>
+              <Link
+                to="/rezerwacja"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-center bg-[#48A7C9] text-white font-semibold py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center justify-center text-lg shadow-soft hover:bg-[#3A8BA8] transition duration-300"
+              >
+                Zarezerwuj wizytę
+              </Link>
             </nav>
           </div>
         )}
