@@ -15,10 +15,50 @@ import { AdminSesje } from './pages/panel/admin/AdminSesje';
 import { AdminKlienci } from './pages/panel/admin/AdminKlienci';
 import { AdminUstawienia } from './pages/panel/admin/AdminUstawienia';
 import { AuthGuard } from './components/AuthGuard';
+import { UserProfile } from './pages/UserProfile';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <Router>
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#ffffff',
+            color: '#1f2937',
+            borderRadius: '16px',
+            border: '1px solid #E5E7EB',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontFamily: 'Inter, system-ui, sans-serif'
+          },
+          success: {
+            iconTheme: {
+              primary: '#2F5C3A',
+              secondary: '#ffffff',
+            },
+            style: {
+              border: '1px solid #C4DEBE/50',
+              background: '#F6FAF4',
+              color: '#2F5C3A',
+            }
+          },
+          error: {
+            iconTheme: {
+              primary: '#B4453A',
+              secondary: '#ffffff',
+            },
+            style: {
+              border: '1px solid #FBEDEB',
+              background: '#FBEDEB',
+              color: '#B4453A',
+            }
+          }
+        }}
+      />
       <Routes>
         {/* Publiczne ścieżki */}
         <Route path="/" element={<LandingPage />} />
@@ -26,6 +66,14 @@ function App() {
         <Route path="/auth/register" element={<Register />} />
         <Route path="/rezerwacja" element={<BookingWizard />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route 
+          path="/profil" 
+          element={
+            <AuthGuard allowedRoles={['user', 'client', 'admin']}>
+              <UserProfile />
+            </AuthGuard>
+          } 
+        />
 
         {/* Panel Pacjenta (Chroniony dla user/client/admin) */}
         <Route 

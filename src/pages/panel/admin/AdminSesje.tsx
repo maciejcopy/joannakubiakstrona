@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
+import { toast } from 'react-hot-toast';
+import { ConfirmDialog } from '../../../components/ConfirmDialog';
 
 interface VisitType {
   id: string;
@@ -16,6 +18,7 @@ export const AdminSesje: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSession, setEditingSession] = useState<VisitType | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -70,6 +73,15 @@ export const AdminSesje: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       )
+    },
+    {
+      label: 'Mój Profil',
+      path: '/profil',
+      icon: (
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      )
     }
   ];
 
@@ -114,8 +126,14 @@ export const AdminSesje: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // Jeśli edytujemy i wyłączamy aktywność usługi, a modal nie jest potwierdzony
+    if (editingSession && editingSession.is_active && !isActive && !isConfirmOpen) {
+      setIsConfirmOpen(true);
+      return;
+    }
 
     try {
       if (editingSession) {
@@ -126,7 +144,7 @@ export const AdminSesje: React.FC = () => {
           .eq('id', editingSession.id);
 
         if (error) throw error;
-        alert('Usługa została zaktualizowana!');
+        toast.success('Usługa została zaktualizowana!');
       } else {
         // Create mode
         const { error } = await supabase
@@ -134,12 +152,14 @@ export const AdminSesje: React.FC = () => {
           .insert({ title, description, price, duration, is_active: isActive });
 
         if (error) throw error;
-        alert('Dodano nową usługę!');
+        toast.success('Dodano nową usługę!');
       }
       setShowModal(false);
       fetchSessions();
     } catch (err: any) {
-      alert('Wystąpił błąd: ' + err.message);
+      toast.error('Wystąpił błąd: ' + err.message);
+    } finally {
+      setIsConfirmOpen(false);
     }
   };
 
@@ -296,6 +316,16 @@ export const AdminSesje: React.FC = () => {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        title="Deaktywacja usługi"
+        message={`Czy na pewno chcesz deaktywować usługę "${title}"? Pacjenci nie będą mogli jej rezerwować.`}
+        confirmLabel="Tak, deaktywuj"
+        cancelLabel="Wróć"
+        type="danger"
+        onConfirm={() => handleSubmit()}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
     </PanelLayout>
   );
 };

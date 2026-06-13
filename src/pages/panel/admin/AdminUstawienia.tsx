@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
+import { toast } from 'react-hot-toast';
 
 interface AppSetting {
   key: string;
@@ -68,6 +69,15 @@ export const AdminUstawienia: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       )
+    },
+    {
+      label: 'Mój Profil',
+      path: '/profil',
+      icon: (
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      )
     }
   ];
 
@@ -127,10 +137,10 @@ export const AdminUstawienia: React.FC = () => {
 
       if (err1 || err2) throw err1 || err2;
 
-      alert('Ustawienia zapisane pomyślnie!');
+      toast.success('Ustawienia zapisane pomyślnie!');
       fetchSettings();
     } catch (err: any) {
-      alert('Błąd podczas zapisywania: ' + err.message);
+      toast.error('Błąd podczas zapisywania: ' + err.message);
     } finally {
       setSaving(false);
     }

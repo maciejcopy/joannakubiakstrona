@@ -17,6 +17,7 @@ interface PanelLayoutProps {
 
 export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role, sidebarItems }) => {
   const [userName, setUserName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,11 +27,24 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, avatar_url')
           .eq('auth_id', user.id)
           .single();
 
         setUserName(profile?.full_name || user.email || 'Użytkownik');
+
+        if (profile?.avatar_url) {
+          try {
+            const { data: signedData, error } = await supabase.storage
+              .from('avatars')
+              .createSignedUrl(profile.avatar_url, 60 * 60); // 1 hour
+            if (!error && signedData) {
+              setAvatarUrl(signedData.signedUrl);
+            }
+          } catch (err) {
+            console.error('Error loading avatar in PanelLayout:', err);
+          }
+        }
       }
     }
     fetchUserProfile();
@@ -80,15 +94,22 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
 
         {/* User profile section in sidebar footer */}
         <div className="pt-6 border-t border-gray-100 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-[#C4DEBE]/40 flex items-center justify-center font-bold text-[#2F5C3A]">
-              {userName ? userName.charAt(0).toUpperCase() : 'U'}
+          <Link
+            to={role === 'admin' ? '/profil' : '/panel/pacjent/profil'}
+            className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition duration-200 group/profile"
+          >
+            <div className="h-10 w-10 rounded-full bg-[#C4DEBE]/40 flex items-center justify-center font-bold text-[#2F5C3A] overflow-hidden border border-[#C4DEBE]/35 flex-shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Awatar" className="h-full w-full object-cover" />
+              ) : (
+                userName ? userName.charAt(0).toUpperCase() : 'U'
+              )}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold text-gray-800 truncate">{userName}</p>
+            <div className="overflow-hidden flex-1">
+              <p className="text-sm font-semibold text-gray-800 truncate group-hover/profile:text-[#2F5C3A] transition duration-200">{userName}</p>
               <p className="text-xs text-gray-500 truncate capitalize">{role}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-semibold transition duration-300"

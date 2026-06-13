@@ -358,3 +358,59 @@ INSERT INTO public.app_settings (key, value, description) VALUES
   ('advance_booking_limit', '{"limit": 4, "unit": "weeks"}'::jsonb, 'Maksymalny czas wyprzedzenia rezerwacji'),
   ('booking_validation_rules', '{"requirePhone": true}'::jsonb, 'Warunki walidacji rejestracji i rezerwacji')
 ON CONFLICT (key) DO NOTHING;
+
+
+-- ==========================================
+-- KOLEJNY ETAP: ZDJĘCIA PROFILOWE (AVATARS STORAGE BUCKET)
+-- ==========================================
+
+-- Dodanie kolumny na ścieżkę do zdjęcia profilowego
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url text;
+
+-- Tworzenie prywatnego bucketu na zdjęcia profilowe
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- RLS i polityki dostępu dla bucketu avatars w storage.objects
+CREATE POLICY "Uzytkownicy moga czytac wlasne awatary lub admin wszystkie"
+  ON storage.objects FOR SELECT
+  TO authenticated
+  USING (
+    bucket_id = 'avatars' AND (
+      (storage.foldername(name))[1] = auth.uid()::text
+      OR name = auth.uid()::text
+      OR public.is_admin()
+    )
+  );
+
+CREATE POLICY "Uzytkownicy moga dodawac wlasne awatary"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars' AND (
+      (storage.foldername(name))[1] = auth.uid()::text
+      OR name = auth.uid()::text
+    )
+  );
+
+CREATE POLICY "Uzytkownicy moga edytowac wlasne awatary"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (
+    bucket_id = 'avatars' AND (
+      (storage.foldername(name))[1] = auth.uid()::text
+      OR name = auth.uid()::text
+    )
+  );
+
+CREATE POLICY "Uzytkownicy moga usuwac wlasne awatary"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (
+    bucket_id = 'avatars' AND (
+      (storage.foldername(name))[1] = auth.uid()::text
+      OR name = auth.uid()::text
+    )
+  );
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { toast } from 'react-hot-toast';
 
 interface VisitType {
   id: string;
@@ -59,7 +60,7 @@ export const BookingWizard: React.FC = () => {
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     // Rezerwacja zostanie zaimplementowana w panelu w kolejnym kroku
-    alert('Rezerwacja wysłana! Szczegółowa logika rezerwacji zostanie dołączona w kolejnych etapach.');
+    toast.success('Rezerwacja wysłana! Szczegółowa logika rezerwacji zostanie dołączona w kolejnych etapach.');
     navigate('/');
   };
 

@@ -5,7 +5,11 @@ import { PanelLayout } from '../../../components/PanelLayout';
 export const PacjentProfil: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [profileId, setProfileId] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('user');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   // Pola formularza
   const [fullName, setFullName] = useState('');
@@ -20,11 +24,27 @@ export const PacjentProfil: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const loadSignedAvatar = async (path: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .createSignedUrl(path, 60 * 60); // 1 hour
+      if (error) throw error;
+      if (data) {
+        setAvatarUrl(data.signedUrl);
+      }
+    } catch (err) {
+      console.error('Error loading signed avatar:', err);
+    }
+  };
+
   useEffect(() => {
     async function fetchProfile() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        
+        setEmail(user.email || '');
 
         const { data, error } = await supabase
           .from('profiles')
@@ -45,6 +65,11 @@ export const PacjentProfil: React.FC = () => {
           setCity(data.city || '');
           setCounty(data.county || '');
           setCountry(data.country || 'Polska');
+          setRole(data.role || 'user');
+          
+          if (data.avatar_url) {
+            await loadSignedAvatar(data.avatar_url);
+          }
         }
       } catch (err: any) {
         console.error('Błąd pobierania profilu:', err);
@@ -55,6 +80,51 @@ export const PacjentProfil: React.FC = () => {
     }
     fetchProfile();
   }, []);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Wybrany plik musi być zdjęciem.');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Brak aktywnej sesji.');
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${session.user.id}/avatar_${Date.now()}.${fileExt}`;
+
+      // Upload file to the 'avatars' bucket
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadErr) throw uploadErr;
+
+      // Update user profile record in profiles
+      const { error: dbErr } = await supabase
+        .from('profiles')
+        .update({ avatar_url: filePath })
+        .eq('id', profileId);
+
+      if (dbErr) throw dbErr;
+
+      await loadSignedAvatar(filePath);
+      setSuccessMsg('Zdjęcie profilowe zostało zaktualizowane.');
+    } catch (err: any) {
+      console.error('Error uploading avatar:', err);
+      setErrorMsg(err.message || 'Wystąpił błąd podczas wgrywania zdjęcia.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +197,41 @@ export const PacjentProfil: React.FC = () => {
               {errorMsg}
             </div>
           )}
+
+          <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 mb-6">
+            <div className="relative group h-24 w-24">
+              <div className="h-24 w-24 rounded-full bg-[#C4DEBE]/40 flex items-center justify-center font-bold text-4xl text-[#2F5C3A] shadow-soft overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Zdjęcie profilowe" className="h-full w-full object-cover" />
+                ) : (
+                  fullName ? fullName.charAt(0).toUpperCase() : 'U'
+                )}
+              </div>
+              
+              {/* Upload button with camera icon in bottom-right */}
+              <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#2F5C3A] hover:bg-[#3A8BA8] border-2 border-white flex items-center justify-center text-white cursor-pointer shadow transition duration-300">
+                {uploading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-white"></div>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-2xl font-serif font-bold text-[#2F5C3A]">{fullName || 'Użytkownik'}</h2>
+              <p className="text-xs text-gray-400">{email}</p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">

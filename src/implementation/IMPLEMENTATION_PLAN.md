@@ -212,11 +212,13 @@ W tym planie **nie wdrażamy** integracji z Resend. Kod i konfiguracja powiadomi
 - [x] Krok 4.7: Stworzenie podstrony profilu klienta `/panel/admin/clients/:id`
 - [x] Krok 4.8: Stworzenie podstron CRUD sesji `/panel/admin/sesje`, listy klientów `/panel/admin/klienci` i ustawień `/panel/admin/ustawienia`
 - [x] Krok 4.9: Implementacja mechanizmu zabezpieczania ścieżek (Auth Guards dla ról pacjent/admin)
+- [x] Krok 4.10: Stworzenie uniwersalnej strony profilu `/profil` dostępnej dla każdej roli
+- [x] Krok 4.11: Wdrożenie przycisku profilu z rozwijanym menu (Profil, Wyloguj się) w nagłówku strony głównej dla zalogowanych użytkowników
 
 ### Krok 5: UI/UX i Dostosowanie Wizualne (Branding Guide)
-- [ ] Krok 5.1: Zastosowanie kolorystyki spójnej z Landing Page w nowych panelach
-- [ ] Krok 5.2: Konfiguracja i integracja Toast w pozycji `top-right`
-- [ ] Krok 5.3: Implementacja okien dialogowych `Dialog` dla potwierdzeń (anulowania wizyt itp.)
+- [x] Krok 5.1: Zastosowanie kolorystyki spójnej z Landing Page w nowych panelach
+- [x] Krok 5.2: Konfiguracja i integracja Toast w pozycji `top-right`
+- [x] Krok 5.3: Implementacja okien dialogowych `Dialog` dla potwierdzeń (anulowania wizyt itp.)
 
 ### Krok 6: Weryfikacja i Testy (Nowy Projekt Supabase)
 - [ ] Krok 6.1: Sprawdzenie poprawności połączenia z nowym projektem na nowych kluczach
