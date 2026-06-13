@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
@@ -17,11 +18,18 @@ interface VisitType {
 interface Booking {
   id: string;
   scheduled_at: string;
+  is_first_visit: boolean;
   profiles: {
     full_name: string;
   };
   visit_types: {
+    id: string;
     title: string;
+  };
+  booking_statuses: {
+    id: string;
+    label: string;
+    name: string;
   };
 }
 
@@ -29,8 +37,16 @@ export const AdminKalendarz: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clients, setClients] = useState<ClientProfile[]>([]);
   const [visitTypes, setVisitTypes] = useState<VisitType[]>([]);
+  const [statuses, setStatuses] = useState<{ id: string; name: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   
+  // Stany filtrów
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterVisitType, setFilterVisitType] = useState('');
+  const [filterDateRange, setFilterDateRange] = useState('');
+  const [filterCustomDate, setFilterCustomDate] = useState('');
+
   // Stan formularza nowej rezerwacji offline
   const [showModal, setShowModal] = useState(false);
   const [isNewClient, setIsNewClient] = useState(false);
@@ -112,7 +128,7 @@ export const AdminKalendarz: React.FC = () => {
       setLoading(true);
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('id, scheduled_at, profiles(full_name), visit_types(title)')
+        .select('id, scheduled_at, is_first_visit, profiles(full_name), visit_types(id, title), booking_statuses(id, label, name)')
         .order('scheduled_at', { ascending: true });
 
       const { data: profilesData } = await supabase
@@ -126,9 +142,15 @@ export const AdminKalendarz: React.FC = () => {
         .select('id, title, price')
         .eq('is_active', true);
 
+      const { data: statusesData } = await supabase
+        .from('booking_statuses')
+        .select('id, name, label')
+        .order('label');
+
       setBookings((bookingsData as any) || []);
       setClients(profilesData || []);
       setVisitTypes(visitTypesData || []);
+      setStatuses(statusesData || []);
     } catch (err) {
       console.error('Error fetching calendar data:', err);
     } finally {
@@ -219,6 +241,64 @@ export const AdminKalendarz: React.FC = () => {
     }
   };
 
+  // Logika filtrowania rezerwacji
+  const filteredBookings = bookings.filter((booking) => {
+    // 1. Filtrowanie po statusie
+    if (filterStatus && booking.booking_statuses?.id !== filterStatus) {
+      return false;
+    }
+
+    // 2. Filtrowanie po typie usługi
+    if (filterVisitType && booking.visit_types?.id !== filterVisitType) {
+      return false;
+    }
+
+    // 3. Filtrowanie po dacie
+    if (filterDateRange) {
+      const bookingDate = new Date(booking.scheduled_at);
+      const now = new Date();
+      
+      if (filterDateRange === 'today') {
+        if (bookingDate.toDateString() !== now.toDateString()) {
+          return false;
+        }
+      } else if (filterDateRange === 'last-3-days') {
+        const limit = new Date();
+        limit.setDate(now.getDate() - 3);
+        if (bookingDate < limit || bookingDate > now) {
+          return false;
+        }
+      } else if (filterDateRange === 'last-week') {
+        const limit = new Date();
+        limit.setDate(now.getDate() - 7);
+        if (bookingDate < limit || bookingDate > now) {
+          return false;
+        }
+      } else if (filterDateRange === 'next-3-days') {
+        const limit = new Date();
+        limit.setDate(now.getDate() + 3);
+        if (bookingDate > limit || bookingDate < now) {
+          return false;
+        }
+      } else if (filterDateRange === 'next-week') {
+        const limit = new Date();
+        limit.setDate(now.getDate() + 7);
+        if (bookingDate > limit || bookingDate < now) {
+          return false;
+        }
+      } else if (filterDateRange === 'custom') {
+        if (filterCustomDate) {
+          const customStr = new Date(filterCustomDate).toDateString();
+          if (bookingDate.toDateString() !== customStr) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  });
+
   return (
     <PanelLayout title="Kalendarz Wizyt" role="admin" sidebarItems={sidebarItems}>
       <div className="space-y-6">
@@ -235,26 +315,160 @@ export const AdminKalendarz: React.FC = () => {
           </button>
         </div>
 
+        {/* Filtry nad tabelą */}
+        <div className="bg-[#F6FAF4]/50 border border-[#C4DEBE]/35 p-5 rounded-2xl">
+          <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Filtruj rezerwacje</h5>
+          <div className="flex flex-wrap gap-4 items-end">
+            {/* Status */}
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Status</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
+              >
+                <option value="">Wszystkie statusy</option>
+                {statuses.map(s => (
+                  <option key={s.id} value={s.id}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Typ usługi */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Typ usługi</label>
+              <select
+                value={filterVisitType}
+                onChange={(e) => setFilterVisitType(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
+              >
+                <option value="">Wszystkie usługi</option>
+                {visitTypes.map(vt => (
+                  <option key={vt.id} value={vt.id}>{vt.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Zakres dat */}
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Termin wizyty</label>
+              <select
+                value={filterDateRange}
+                onChange={(e) => {
+                  setFilterDateRange(e.target.value);
+                  if (e.target.value !== 'custom') {
+                    setFilterCustomDate('');
+                  }
+                }}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
+              >
+                <option value="">Wszystkie terminy</option>
+                <option value="today">Dzisiaj</option>
+                <option value="last-3-days">Ostatnie 3 dni</option>
+                <option value="last-week">Ostatni tydzień</option>
+                <option value="next-3-days">Nadchodzące 3 dni</option>
+                <option value="next-week">Nadchodzący tydzień</option>
+                <option value="custom">Wybrana data...</option>
+              </select>
+            </div>
+
+            {/* Wybrana data (pokazuje się tylko przy 'custom') */}
+            {filterDateRange === 'custom' && (
+              <div className="flex-1 min-w-[150px]">
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Wybierz datę</label>
+                <input
+                  type="date"
+                  value={filterCustomDate}
+                  onChange={(e) => setFilterCustomDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
+                />
+              </div>
+            )}
+
+            {/* Reset filtrów */}
+            {(filterStatus || filterVisitType || filterDateRange || filterCustomDate) && (
+              <div>
+                <button
+                  onClick={() => {
+                    setFilterStatus('');
+                    setFilterVisitType('');
+                    setFilterDateRange('');
+                    setFilterCustomDate('');
+                  }}
+                  className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold rounded-xl transition duration-200"
+                >
+                  Wyczyść filtry
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2F5C3A]"></div>
           </div>
         ) : (
           <div className="space-y-4">
-            <h4 className="text-md font-serif font-bold text-[#2F5C3A]">Zaplanowane wizyty w systemie</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {bookings.map((booking) => (
-                <div key={booking.id} className="border border-gray-100 p-5 rounded-2xl bg-gray-50/50">
-                  <span className="text-xs font-semibold text-[#48A7C9]">
-                    {new Date(booking.scheduled_at).toLocaleDateString('pl-PL')} o {new Date(booking.scheduled_at).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <h5 className="font-serif font-bold text-gray-800 text-lg mt-1">{booking.profiles?.full_name || 'Pacjent offline'}</h5>
-                  <p className="text-sm text-gray-600 mt-1">{booking.visit_types?.title}</p>
-                </div>
-              ))}
-              {bookings.length === 0 && (
-                <p className="text-gray-500 col-span-3 text-center py-12">Brak rezerwacji w kalendarzu.</p>
-              )}
+            <div className="flex justify-between items-center">
+              <h4 className="text-md font-serif font-bold text-[#2F5C3A]">Zaplanowane wizyty w systemie</h4>
+              <span className="text-xs text-gray-500">Znaleziono: {filteredBookings.length}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Klient</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Usługa</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {filteredBookings.map((booking) => (
+                    <tr
+                      key={booking.id}
+                      onClick={() => navigate(`/panel/admin/bookings/${booking.id}`)}
+                      className="cursor-pointer hover:bg-[#F6FAF4]/50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
+                        {booking.profiles?.full_name || 'Klient offline'}
+                        {booking.is_first_visit && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            1sza wizyta
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {booking.visit_types?.title}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {new Date(booking.scheduled_at).toLocaleString('pl-PL')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm transition duration-300 ${
+                          booking.booking_statuses?.name === 'confirmed'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
+                            : booking.booking_statuses?.name === 'completed'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200/50'
+                            : booking.booking_statuses?.name === 'cancelled'
+                            ? 'bg-red-50 text-red-700 border-red-200/50'
+                            : 'bg-amber-50 text-amber-700 border-amber-200/50'
+                        }`}>
+                          {booking.booking_statuses?.label}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredBookings.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                        Brak pasujących rezerwacji w kalendarzu.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

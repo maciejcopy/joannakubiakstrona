@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 
@@ -18,6 +18,7 @@ export const AdminKlienci: React.FC = () => {
   const [profiles, setProfiles] = useState<ProfileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const sidebarItems = [
     {
@@ -139,12 +140,15 @@ export const AdminKlienci: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Telefon</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Miasto</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Rola</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Profil</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {filteredProfiles.map((p) => (
-                  <tr key={p.id}>
+                  <tr
+                    key={p.id}
+                    onClick={() => navigate(`/panel/admin/clients/${p.id}`)}
+                    className="cursor-pointer hover:bg-[#F6FAF4]/50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
                       {p.full_name}
                     </td>
@@ -158,22 +162,21 @@ export const AdminKlienci: React.FC = () => {
                       {p.city || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        p.role === 'client' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm transition duration-300 ${
+                        p.role === 'client'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
+                          : p.role === 'admin'
+                          ? 'bg-purple-50 text-purple-700 border-purple-200/50'
+                          : 'bg-blue-50 text-blue-700 border-blue-200/50'
                       }`}>
-                        {p.role === 'client' ? 'Stały Klient' : 'Użytkownik'}
+                        {p.role === 'client' ? 'Stały Klient' : p.role === 'admin' ? 'Administrator' : 'Użytkownik'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link to={`/panel/admin/clients/${p.id}`} className="text-[#48A7C9] hover:text-[#3A8BA8]">
-                        Karta pacjenta
-                      </Link>
                     </td>
                   </tr>
                 ))}
                 {filteredProfiles.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       Nie znaleziono żadnych pacjentów.
                     </td>
                   </tr>

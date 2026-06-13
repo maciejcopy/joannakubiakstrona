@@ -221,9 +221,9 @@ W tym planie **nie wdrażamy** integracji z Resend. Kod i konfiguracja powiadomi
 - [x] Krok 5.3: Implementacja okien dialogowych `Dialog` dla potwierdzeń (anulowania wizyt itp.)
 
 ### Krok 6: Weryfikacja i Testy (Nowy Projekt Supabase)
-- [ ] Krok 6.1: Sprawdzenie poprawności połączenia z nowym projektem na nowych kluczach
-- [ ] Krok 6.2: Testy automatyczne triggera `is_first_visit` oraz procedury usuwania konta
-- [ ] Krok 6.3: Manualny test procesu rezerwacji pacjenta online i weryfikacja bazy danych
-- [ ] Krok 6.4: Manualny test dodawania rezerwacji offline przez panel administratora
-- [ ] Krok 6.5: Weryfikacja poprawności ograniczeń czasowych na bazie `app_settings`
-- [ ] Krok 6.6: Weryfikacja wizualna spójności Landing Page po wdrożeniu Shadcn/ui
+- [x] Krok 6.1: Sprawdzenie poprawności połączenia z nowym projektem na nowych kluczach
+- [x] Krok 6.2: Testy automatyczne triggera `is_first_visit` oraz procedury usuwania konta
+- [x] Krok 6.3: Manualny test procesu rezerwacji pacjenta online i weryfikacja bazy danych
+- [x] Krok 6.4: Manualny test dodawania rezerwacji offline przez panel administratora
+- [x] Krok 6.5: Weryfikacja poprawności ograniczeń czasowych na bazie `app_settings`
+- [x] Krok 6.6: Weryfikacja wizualna spójności Landing Page po wdrożeniu Shadcn/ui

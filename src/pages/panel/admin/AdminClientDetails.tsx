@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
+import { toast } from 'react-hot-toast';
 
 interface ProfileDetails {
   id: string;
@@ -36,6 +37,25 @@ export const AdminClientDetails: React.FC = () => {
   const [profile, setProfile] = useState<ProfileDetails | null>(null);
   const [bookings, setBookings] = useState<ClientBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    phone_prefix: '+48',
+    phone_number: '',
+    add1: '',
+    add2: '',
+    post_code: '',
+    city: '',
+    county: '',
+    country: 'Polska'
+  });
 
   const sidebarItems = [
     {
@@ -109,6 +129,21 @@ export const AdminClientDetails: React.FC = () => {
         if (profileErr) throw profileErr;
         setProfile(profileData);
 
+        if (profileData) {
+          setFormData({
+            full_name: profileData.full_name || '',
+            email: profileData.email || '',
+            phone_prefix: profileData.phone_prefix || '+48',
+            phone_number: profileData.phone_number || '',
+            add1: profileData.add1 || '',
+            add2: profileData.add2 || '',
+            post_code: profileData.post_code || '',
+            city: profileData.city || '',
+            county: profileData.county || '',
+            country: profileData.country || 'Polska'
+          });
+        }
+
         // Pobierz jego listę wizyt
         const { data: bookingsData } = await supabase
           .from('bookings')
@@ -125,6 +160,60 @@ export const AdminClientDetails: React.FC = () => {
     }
     fetchClientDetails();
   }, [id]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.full_name,
+          email: formData.email || null,
+          phone_prefix: formData.phone_prefix,
+          phone_number: formData.phone_number,
+          add1: formData.add1 || null,
+          add2: formData.add2 || null,
+          post_code: formData.post_code || null,
+          city: formData.city || null,
+          county: formData.county || null,
+          country: formData.country
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setProfile(prev => prev ? { ...prev, ...formData } : null);
+      setIsEditing(false);
+      toast.success('Dane pacjenta zostały zaktualizowane.');
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      toast.error('Błąd zapisu: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Profil pacjenta został pomyślnie usunięty.');
+      navigate('/panel/admin/klienci');
+    } catch (err: any) {
+      console.error('Error deleting profile:', err);
+      toast.error('Błąd usuwania: ' + err.message);
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -151,35 +240,211 @@ export const AdminClientDetails: React.FC = () => {
 
   return (
     <PanelLayout title={`Karta Klienta: ${profile.full_name}`} role="admin" sidebarItems={sidebarItems}>
+      
+      {/* Action bar */}
+      <div className="flex justify-between items-center flex-wrap gap-4 border-b border-gray-100 pb-6 mb-6">
+        <div>
+          <h2 className="text-xl font-serif font-bold text-[#2F5C3A]">{profile.full_name}</h2>
+          <p className="text-sm text-gray-500">Zarządzanie profilem i historią wizyt pacjenta.</p>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            to="/panel/admin/klienci"
+            className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-xl transition duration-300 text-sm"
+          >
+            Powrót do listy
+          </Link>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-[#2F5C3A] hover:bg-[#1E3C25] text-white font-semibold rounded-xl transition duration-300 text-sm"
+          >
+            Edytuj profil
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 font-semibold rounded-xl transition duration-300 text-sm"
+          >
+            Usuń profil
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Lewa kolumna: Szczegółowe dane teleadresowe */}
+        {/* Lewa kolumna: Szczegółowe dane teleadresowe lub formularz edycji */}
         <div className="space-y-6">
-          <div className="bg-[#F6FAF4]/30 border border-[#C4DEBE]/20 p-6 rounded-2xl">
-            <h3 className="text-md font-serif font-bold text-[#2F5C3A] mb-4">Dane Kontaktowe</h3>
-            <div className="space-y-3 text-sm text-gray-700">
-              <div>
-                <span className="text-xs text-gray-400 block uppercase">Telefon</span>
-                <span className="font-semibold">{profile.phone_prefix} {profile.phone_number}</span>
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block uppercase">E-mail</span>
-                <span>{profile.email || 'Brak (konto offline)'}</span>
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block uppercase">Adres zamieszkania</span>
-                <p className="font-medium">{profile.add1}</p>
-                {profile.add2 && <p className="text-gray-500">{profile.add2}</p>}
-                <p className="font-medium">{profile.post_code} {profile.city}</p>
-                {profile.county && <p className="text-xs text-gray-500">Powiat/Województwo: {profile.county}</p>}
-                <p className="text-xs text-gray-500">Kraj: {profile.country}</p>
-              </div>
-              <div className="pt-2">
-                <span className="text-xs text-gray-400 block uppercase">Pacjent od</span>
-                <span>{new Date(profile.created_at).toLocaleDateString('pl-PL')}</span>
+          {!isEditing ? (
+            <div className="bg-[#F6FAF4]/30 border border-[#C4DEBE]/20 p-6 rounded-2xl">
+              <h3 className="text-md font-serif font-bold text-[#2F5C3A] mb-4">Dane Kontaktowe</h3>
+              <div className="space-y-3 text-sm text-gray-700">
+                <div>
+                  <span className="text-xs text-gray-400 block uppercase">Telefon</span>
+                  <span className="font-semibold">{profile.phone_prefix} {profile.phone_number}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 block uppercase">E-mail</span>
+                  <span>{profile.email || <span className="text-gray-400 italic">Brak (konto offline)</span>}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 block uppercase">Adres zamieszkania</span>
+                  <p className="font-medium">{profile.add1 || '-'}</p>
+                  {profile.add2 && <p className="text-gray-500">{profile.add2}</p>}
+                  {(profile.post_code || profile.city) && (
+                    <p className="font-medium">{profile.post_code} {profile.city}</p>
+                  )}
+                  {profile.county && <p className="text-xs text-gray-500">Powiat/Województwo: {profile.county}</p>}
+                  <p className="text-xs text-gray-500">Kraj: {profile.country}</p>
+                </div>
+                <div className="pt-2">
+                  <span className="text-xs text-gray-400 block uppercase">Pacjent od</span>
+                  <span>{new Date(profile.created_at).toLocaleDateString('pl-PL')}</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <form onSubmit={handleSave} className="space-y-4 bg-white border border-[#C4DEBE]/35 p-6 rounded-2xl">
+              <h3 className="text-md font-serif font-bold text-[#2F5C3A] mb-4">Edycja Danych Pacjenta</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Imię i Nazwisko *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">E-mail</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                    placeholder="Brak (konto offline)"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-1">
+                    <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Prefiks</label>
+                    <input
+                      type="text"
+                      value={formData.phone_prefix}
+                      onChange={(e) => setFormData({ ...formData, phone_prefix: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Telefon</label>
+                    <input
+                      type="text"
+                      value={formData.phone_number}
+                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Ulica i nr domu</label>
+                  <input
+                    type="text"
+                    value={formData.add1}
+                    onChange={(e) => setFormData({ ...formData, add1: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Nr lokalu / dod. adres</label>
+                  <input
+                    type="text"
+                    value={formData.add2}
+                    onChange={(e) => setFormData({ ...formData, add2: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Kod pocztowy</label>
+                    <input
+                      type="text"
+                      value={formData.post_code}
+                      onChange={(e) => setFormData({ ...formData, post_code: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Miasto</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Województwo / Powiat</label>
+                  <input
+                    type="text"
+                    value={formData.county}
+                    onChange={(e) => setFormData({ ...formData, county: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Kraj</label>
+                  <input
+                    type="text"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 py-2 px-4 bg-[#2F5C3A] hover:bg-[#1E3C25] text-white font-semibold rounded-xl text-sm transition duration-200 disabled:opacity-50"
+                >
+                  {saving ? 'Zapisywanie...' : 'Zapisz'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false);
+                    if (profile) {
+                      setFormData({
+                        full_name: profile.full_name || '',
+                        email: profile.email || '',
+                        phone_prefix: profile.phone_prefix || '+48',
+                        phone_number: profile.phone_number || '',
+                        add1: profile.add1 || '',
+                        add2: profile.add2 || '',
+                        post_code: profile.post_code || '',
+                        city: profile.city || '',
+                        county: profile.county || '',
+                        country: profile.country || 'Polska'
+                      });
+                    }
+                  }}
+                  className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-xl text-sm transition duration-200"
+                >
+                  Anuluj
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="bg-[#F6FAF4]/30 border border-[#C4DEBE]/20 p-6 rounded-2xl">
             <h3 className="text-md font-serif font-bold text-[#2F5C3A] mb-4">Statystyki Pacjenta</h3>
@@ -257,6 +522,37 @@ export const AdminClientDetails: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-xl border border-gray-100">
+            <h3 className="text-lg font-serif font-bold text-red-700 mb-2">Potwierdź usunięcie</h3>
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+              Czy na pewno chcesz usunąć profil pacjenta <span className="font-semibold text-gray-800">{profile.full_name}</span>? 
+              <br /><br />
+              Ta akcja usunie trwale profil z bazy danych oraz wszystkie powiązane z nim rezerwacje (funkcja kaskadowego usuwania rezerwacji).
+              Tej operacji nie można cofnąć.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-sm transition duration-200 disabled:opacity-50"
+              >
+                {deleting ? 'Usuwanie...' : 'Tak, usuń trwale'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-xl text-sm transition duration-200"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </PanelLayout>
   );
 };
