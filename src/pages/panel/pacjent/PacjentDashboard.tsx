@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
+import { pacjentSidebarItems } from '../../../config/sidebarConfig';
 
 interface Booking {
   id: string;
@@ -66,32 +67,11 @@ export const PacjentDashboard: React.FC = () => {
     fetchBookings();
   }, []);
 
-  const sidebarItems = [
-    {
-      label: 'Moje Wizyty',
-      path: '/panel/pacjent/dashboard',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Mój Profil',
-      path: '/panel/pacjent/profil',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      )
-    }
-  ];
-
   const upcomingBookings = bookings.filter(b => new Date(b.scheduled_at) >= new Date());
   const pastBookings = bookings.filter(b => new Date(b.scheduled_at) < new Date());
 
   return (
-    <PanelLayout title="Moje Wizyty" role="pacjent" sidebarItems={sidebarItems}>
+    <PanelLayout title="Moje Wizyty" role="pacjent" sidebarItems={pacjentSidebarItems}>
       <div className="space-y-8">
         {/* Górne CTA */}
         <div className="flex justify-between items-center flex-wrap gap-4 border-b border-gray-100 pb-6">

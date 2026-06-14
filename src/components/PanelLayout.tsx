@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 
 interface SidebarItem {
   label: string;
@@ -12,13 +12,18 @@ interface SidebarItem {
 interface PanelLayoutProps {
   children: React.ReactNode;
   title: string;
+  subtitle?: string;
   role: 'pacjent' | 'admin';
   sidebarItems: SidebarItem[];
 }
 
-export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role, sidebarItems }) => {
-  const [userName, setUserName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, subtitle, role, sidebarItems }) => {
+  const [userName, setUserName] = useState(() => {
+    return sessionStorage.getItem('panel_user_name') || '';
+  });
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
+    return sessionStorage.getItem('panel_avatar_url') || null;
+  });
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -26,34 +31,54 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
 
   useEffect(() => {
     async function fetchUserProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name, avatar_url')
-          .eq('auth_id', user.id)
-          .single();
+      try {
+        const cachedName = sessionStorage.getItem('panel_user_name');
+        const cachedAvatar = sessionStorage.getItem('panel_avatar_url');
+        const cachedTime = sessionStorage.getItem('panel_profile_timestamp');
+        const now = Date.now();
 
-        setUserName(profile?.full_name || user.email || 'Użytkownik');
+        // If data is in cache and fresh (less than 5 minutes old), skip fetching
+        if (cachedName && cachedAvatar !== null && cachedTime && (now - Number(cachedTime) < 5 * 60 * 1000)) {
+          return;
+        }
 
-        if (profile?.avatar_url) {
-          try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('auth_id', user.id)
+            .single();
+
+          const name = profile?.full_name || user.email || 'Użytkownik';
+          setUserName(name);
+          sessionStorage.setItem('panel_user_name', name);
+
+          let avatarSignedUrl = '';
+          if (profile?.avatar_url) {
             const { data: signedData, error } = await supabase.storage
               .from('avatars')
               .createSignedUrl(profile.avatar_url, 60 * 60); // 1 hour
             if (!error && signedData) {
-              setAvatarUrl(signedData.signedUrl);
+              avatarSignedUrl = signedData.signedUrl;
             }
-          } catch (err) {
-            console.error('Error loading avatar in PanelLayout:', err);
           }
+          
+          setAvatarUrl(avatarSignedUrl || null);
+          sessionStorage.setItem('panel_avatar_url', avatarSignedUrl);
+          sessionStorage.setItem('panel_profile_timestamp', String(now));
         }
+      } catch (err) {
+        console.error('Error fetching user profile in PanelLayout:', err);
       }
     }
     fetchUserProfile();
   }, []);
 
   const handleLogout = async () => {
+    sessionStorage.removeItem('panel_user_name');
+    sessionStorage.removeItem('panel_avatar_url');
+    sessionStorage.removeItem('panel_profile_timestamp');
     await supabase.auth.signOut();
     navigate('/');
   };
@@ -89,7 +114,7 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-[#C4DEBE]/35 flex flex-col justify-between p-6 shadow-soft transition-all duration-300 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 bg-[#F8FBF7] border-r border-[#C4DEBE]/35 flex flex-col justify-between p-6 shadow-soft transition-all duration-300 ease-in-out md:static md:translate-x-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${isCollapsed ? 'md:w-20 md:p-4' : 'md:w-64'}`}
       >
@@ -140,12 +165,12 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
                   key={index}
                   to={item.path}
                   onClick={() => setIsMobileOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-300 ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isCollapsed ? 'justify-center px-2' : ''
                   } ${
                     isActive
-                      ? 'bg-[#2F5C3A] text-white shadow-soft'
-                      : 'text-gray-600 hover:bg-[#F6FAF4]/50 hover:text-[#2F5C3A]'
+                      ? 'border-l-4 border-[#48A7C9] bg-[#2F5C3A]/10 text-[#2F5C3A] font-semibold rounded-l-none'
+                      : 'text-gray-600 hover:bg-[#2F5C3A]/8 hover:text-[#2F5C3A]'
                   }`}
                   title={isCollapsed ? item.label : undefined}
                 >
@@ -158,7 +183,13 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
         </div>
 
         {/* User profile section in sidebar footer */}
-        <div className="pt-6 border-t border-gray-100 space-y-4">
+        <div className="pt-4 border-t border-gray-100 space-y-3">
+          {/* Data */}
+          {!isCollapsed && (
+            <p className="text-[10px] text-gray-400 text-center">
+              {new Date().toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          )}
           <Link
             to={role === 'admin' ? '/profil' : '/panel/pacjent/profil'}
             onClick={() => setIsMobileOpen(false)}
@@ -188,9 +219,7 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
             }`}
             title={isCollapsed ? "Wyloguj się" : undefined}
           >
-            <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut className="h-4 w-4 flex-shrink-0" />
             {!isCollapsed && <span>Wyloguj się</span>}
           </button>
         </div>
@@ -199,13 +228,15 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, role,
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
         <header className="mb-8 flex justify-between items-center">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#2F5C3A]">{title}</h2>
-          <div className="text-xs text-gray-400">
-            Dzisiejsza data: {new Date().toLocaleDateString('pl-PL')}
+          <div>
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#2F5C3A]">{title}</h2>
+            {subtitle && <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>}
           </div>
         </header>
         <div className="bg-white rounded-3xl p-6 md:p-8 shadow-soft border border-[#C4DEBE]/20">
-          {children}
+          <div className="animate-fade-in">
+            {children}
+          </div>
         </div>
       </main>
     </div>

@@ -121,6 +121,9 @@ export const UserProfile: React.FC = () => {
 
       if (dbErr) throw dbErr;
 
+      sessionStorage.removeItem('panel_avatar_url');
+      sessionStorage.removeItem('panel_profile_timestamp');
+
       await loadSignedAvatar(filePath);
       setSuccessMsg('Zdjęcie profilowe zostało zaktualizowane.');
     } catch (err: any) {
@@ -154,6 +157,8 @@ export const UserProfile: React.FC = () => {
         .eq('id', profileId);
 
       if (error) throw error;
+      sessionStorage.removeItem('panel_user_name');
+      sessionStorage.removeItem('panel_profile_timestamp');
       setSuccessMsg('Profil został pomyślnie zaktualizowany.');
     } catch (err: any) {
       console.error('Błąd zapisu profilu:', err);

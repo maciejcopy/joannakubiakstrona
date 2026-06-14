@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
+import { pacjentSidebarItems } from '../../../config/sidebarConfig';
 
 export const PacjentProfil: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -116,6 +117,9 @@ export const PacjentProfil: React.FC = () => {
 
       if (dbErr) throw dbErr;
 
+      sessionStorage.removeItem('panel_avatar_url');
+      sessionStorage.removeItem('panel_profile_timestamp');
+
       await loadSignedAvatar(filePath);
       setSuccessMsg('Zdjęcie profilowe zostało zaktualizowane.');
     } catch (err: any) {
@@ -149,6 +153,8 @@ export const PacjentProfil: React.FC = () => {
         .eq('id', profileId);
 
       if (error) throw error;
+      sessionStorage.removeItem('panel_user_name');
+      sessionStorage.removeItem('panel_profile_timestamp');
       setSuccessMsg('Profil został pomyślnie zaktualizowany.');
     } catch (err: any) {
       console.error('Błąd zapisu profilu:', err);
@@ -158,29 +164,8 @@ export const PacjentProfil: React.FC = () => {
     }
   };
 
-  const sidebarItems = [
-    {
-      label: 'Moje Wizyty',
-      path: '/panel/pacjent/dashboard',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Mój Profil',
-      path: '/panel/pacjent/profil',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      )
-    }
-  ];
-
   return (
-    <PanelLayout title="Mój Profil" role="pacjent" sidebarItems={sidebarItems}>
+    <PanelLayout title="Mój Profil" role="pacjent" sidebarItems={pacjentSidebarItems}>
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2F5C3A]"></div>

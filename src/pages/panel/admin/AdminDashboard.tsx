@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
+import { adminSidebarItems } from '../../../config/sidebarConfig';
+import { CalendarDays, CheckCircle, Users, ShieldCheck, User } from 'lucide-react';
 
 interface BookingStats {
   totalBookings: number;
@@ -111,66 +113,8 @@ export const AdminDashboard: React.FC = () => {
     return true;
   });
 
-  const sidebarItems = [
-    {
-      label: 'Dashboard',
-      path: '/panel/admin/dashboard',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Kalendarz',
-      path: '/panel/admin/kalendarz',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Klienci',
-      path: '/panel/admin/klienci',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Typy Sesji',
-      path: '/panel/admin/sesje',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-      )
-    },
-    {
-      label: 'Ustawienia',
-      path: '/panel/admin/ustawienia',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Mój Profil',
-      path: '/profil',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      )
-    }
-  ];
-
   return (
-    <PanelLayout title="Dashboard" role="admin" sidebarItems={sidebarItems}>
+    <PanelLayout title="Dashboard" role="admin" sidebarItems={adminSidebarItems}>
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2F5C3A]"></div>
@@ -181,9 +125,10 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Karta 1 */}
-            <div className="group relative bg-[#F6FAF4]/50 border border-[#C4DEBE]/30 p-6 rounded-2xl cursor-help transition-all duration-300 hover:shadow-soft">
+            <div className="group relative bg-gradient-to-br from-blue-50 to-white border border-[#C4DEBE]/35 border-l-4 border-l-blue-300 p-6 rounded-2xl cursor-help transition-all duration-300 hover:shadow-soft">
               <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Liczba rezerwacji</span>
               <p className="text-3xl font-serif font-bold text-[#2F5C3A] mt-2">{stats.totalBookings}</p>
+              <CalendarDays className="absolute top-6 right-6 h-10 w-10 text-blue-500 opacity-20" />
               {/* Tooltip */}
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-xs rounded-xl p-3 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 z-20 shadow-lg text-center leading-relaxed">
                 Całkowita liczba rezerwacji (oczekujących, potwierdzonych, zrealizowanych i anulowanych) zarejestrowanych w systemie.
@@ -192,9 +137,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Karta 2 */}
-            <div className="group relative bg-[#F6FAF4]/50 border border-[#C4DEBE]/30 p-6 rounded-2xl cursor-help transition-all duration-300 hover:shadow-soft">
+            <div className="group relative bg-gradient-to-br from-emerald-50 to-white border border-[#C4DEBE]/35 border-l-4 border-l-emerald-300 p-6 rounded-2xl cursor-help transition-all duration-300 hover:shadow-soft">
               <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Potwierdzone wizyty</span>
               <p className="text-3xl font-serif font-bold text-[#2F5C3A] mt-2">{stats.confirmedBookings}</p>
+              <CheckCircle className="absolute top-6 right-6 h-10 w-10 text-emerald-500 opacity-20" />
               {/* Tooltip */}
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-xs rounded-xl p-3 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 z-20 shadow-lg text-center leading-relaxed">
                 Liczba wizyt o statusie "Potwierdzona", które zostały zatwierdzone przez gabinet.
@@ -203,9 +149,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Karta 3 */}
-            <div className="group relative bg-[#F6FAF4]/50 border border-[#C4DEBE]/30 p-6 rounded-2xl cursor-help transition-all duration-300 hover:shadow-soft">
+            <div className="group relative bg-gradient-to-br from-purple-50 to-white border border-[#C4DEBE]/35 border-l-4 border-l-purple-300 p-6 rounded-2xl cursor-help transition-all duration-300 hover:shadow-soft">
               <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Aktywni Klienci</span>
               <p className="text-3xl font-serif font-bold text-[#2F5C3A] mt-2">{stats.totalClients}</p>
+              <Users className="absolute top-6 right-6 h-10 w-10 text-purple-500 opacity-20" />
               {/* Tooltip */}
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-xs rounded-xl p-3 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 z-20 shadow-lg text-center leading-relaxed">
                 Liczba zarejestrowanych pacjentów posiadających przypisaną rolę klienta (client) w bazie.
@@ -219,14 +166,14 @@ export const AdminDashboard: React.FC = () => {
             {/* Lewa kolumna: Ostatnie rezerwacje */}
             <div className="bg-white border border-[#C4DEBE]/20 rounded-3xl p-6 shadow-soft space-y-4">
               <h3 className="text-lg font-serif font-bold text-[#2F5C3A]">Ostatnie rezerwacje</h3>
-              <div className="overflow-x-auto">
+              <div className="overflow-hidden rounded-2xl border border-gray-100">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[#2F5C3A]/5">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Klient</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Usługa</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-[#2F5C3A] uppercase">Klient</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-[#2F5C3A] uppercase">Usługa</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-[#2F5C3A] uppercase">Data</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-[#2F5C3A] uppercase">Status</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
@@ -234,15 +181,22 @@ export const AdminDashboard: React.FC = () => {
                       <tr
                         key={booking.id}
                         onClick={() => navigate(`/panel/admin/bookings/${booking.id}`)}
-                        className="cursor-pointer hover:bg-[#F6FAF4]/50 transition-colors"
+                        className="cursor-pointer hover:bg-[#F0F7EE] transition-colors"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
-                          {booking.profiles?.full_name || 'Klient offline'}
-                          {booking.is_first_visit && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                              1sza wizyta
+                          <div className="flex items-center gap-3">
+                            <div className="h-7 w-7 rounded-full bg-[#C4DEBE]/40 text-xs font-bold text-[#2F5C3A] flex items-center justify-center flex-shrink-0">
+                              {(booking.profiles?.full_name || 'Klient offline').charAt(0).toUpperCase()}
+                            </div>
+                            <span>
+                              {booking.profiles?.full_name || 'Klient offline'}
+                              {booking.is_first_visit && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                  1sza wizyta
+                                </span>
+                              )}
                             </span>
-                          )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {booking.visit_types?.title}
@@ -303,30 +257,30 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Lista aktywności (Timeline) */}
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+              <div className="relative space-y-6 max-h-[400px] overflow-y-auto pr-1">
+                {/* Pionowa linia czasu łącząca ikony */}
+                {filteredLogs.length > 1 && (
+                  <div className="absolute left-4 top-2 bottom-8 w-0.5 bg-gray-100 z-0" />
+                )}
                 {filteredLogs.map((log) => {
                   const isUserAdmin = log.profiles?.role === 'admin';
                   return (
-                    <div key={log.id} className="flex gap-3 items-start border-b border-gray-50 pb-3 last:border-0">
+                    <div key={log.id} className="flex gap-4 items-start relative bg-white pb-1">
                       {/* Ikona zależna od roli */}
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 border transition-all duration-300 ${
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 border bg-white transition-all duration-300 relative z-10 ${
                         isUserAdmin
                           ? 'bg-purple-50 border-purple-200 text-purple-700'
                           : 'bg-blue-50 border-blue-200 text-blue-700'
                       }`}>
                         {isUserAdmin ? (
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
+                          <ShieldCheck className="h-4 w-4" />
                         ) : (
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
+                          <User className="h-4 w-4" />
                         )}
                       </div>
 
                       {/* Treść zdarzenia */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 relative z-10">
                         <p className="text-sm font-semibold text-gray-800">
                           {log.action}
                         </p>
@@ -342,9 +296,9 @@ export const AdminDashboard: React.FC = () => {
                           <p className="text-xs text-gray-400 mt-1 italic truncate">
                             {log.details.details || log.details.visit_type || log.details.client_name || log.details.email ? (
                               <>
-                                {log.details.details && <span>{log.details.details}</span>}
-                                {log.details.visit_type && <span>Usługa: {log.details.visit_type}</span>}
-                                {log.details.client_name && <span>Pacjent: {log.details.client_name}</span>}
+                                {log.details.details && <span className="mr-2">{log.details.details}</span>}
+                                {log.details.visit_type && <span className="mr-2">Usługa: {log.details.visit_type}</span>}
+                                {log.details.client_name && <span className="mr-2">Pacjent: {log.details.client_name}</span>}
                                 {log.details.email && <span>E-mail: {log.details.email}</span>}
                               </>
                             ) : (
@@ -355,7 +309,7 @@ export const AdminDashboard: React.FC = () => {
                       </div>
 
                       {/* Czas zdarzenia */}
-                      <div className="text-[10px] text-gray-400 whitespace-nowrap">
+                      <div className="text-[10px] text-gray-400 whitespace-nowrap relative z-10">
                         {new Date(log.created_at).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
