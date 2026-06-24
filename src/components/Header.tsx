@@ -127,11 +127,11 @@ const Header: React.FC = () => {
                       <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
                     </div>
                     <Link
-                      to={profile?.role === 'admin' ? '/profil' : '/panel/pacjent/profil'}
+                      to={profile?.role === 'admin' ? '/panel/admin/dashboard' : '/panel/pacjent/dashboard'}
                       onClick={() => setIsDropdownOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#F6FAF4]/50 hover:text-[#2F5C3A] transition duration-200"
                     >
-                      Profil
+                      Panel
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -201,11 +201,11 @@ const Header: React.FC = () => {
                     </div>
                   </div>
                   <Link
-                    to={profile?.role === 'admin' ? '/profil' : '/panel/pacjent/profil'}
+                    to={profile?.role === 'admin' ? '/panel/admin/dashboard' : '/panel/pacjent/dashboard'}
                     onClick={() => setIsMenuOpen(false)}
                     className="text-left text-gray-700 hover:text-pastel-blue hover:bg-light-green-bg transition-all duration-300 font-medium py-3 px-4 rounded-lg mx-2 min-h-[44px] flex items-center text-lg"
                   >
-                    Profil
+                    Panel
                   </Link>
                   <button
                     onClick={() => {
