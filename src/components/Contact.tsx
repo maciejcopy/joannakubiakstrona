@@ -82,7 +82,7 @@ const Contact: React.FC = () => {
       console.log('   Headers:', Object.fromEntries(response.headers.entries()));
       
       const result = await response.json();
-      console.log('   Response data:', result);
+      console.log('   Response data:', JSON.stringify(result, null, 2));
 
       if (response.ok) {
         console.log('✅ SUKCES!');
@@ -93,8 +93,9 @@ const Contact: React.FC = () => {
           setFormData({ name: '', email: '', phone: '', message: '' });
         }, 5000);
       } else {
-        console.log('❌ API ERROR:', result);
-        setError(result.error || `Błąd ${response.status}: ${result.details || 'Wystąpił błąd podczas wysyłania wiadomości'}`);
+        console.log('❌ API ERROR:', JSON.stringify(result, null, 2));
+        const detailsStr = result.details ? (typeof result.details === 'object' ? JSON.stringify(result.details) : result.details) : '';
+        setError(detailsStr ? `Błąd: ${detailsStr}` : (result.error || `Błąd ${response.status}: Wystąpił błąd podczas wysyłania wiadomości`));
       }
     } catch (err) {
       console.log('❌ NETWORK ERROR:', err);

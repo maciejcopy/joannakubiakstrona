@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
@@ -27,7 +28,7 @@ serve(async (req) => {
 
     // Get environment variables
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    const TO_EMAIL = 'joannakubiakpsycholog@gmail.com'
+    const TO_EMAIL = Deno.env.get('TO_EMAIL') || 'joannakubiakpsycholog@gmail.com'
 
     // TYMCZASOWO: Wklej tutaj swój klucz API z Resend (zaczyna się od "re_")
     const RESEND_API_KEY_TEMP = 'WKLEJ_TUTAJ_SWOJ_PRAWDZIWY_KLUCZ_API'
@@ -97,13 +98,23 @@ serve(async (req) => {
       }),
     })
 
-    const resendData = await resendResponse.json()
+    let resendData;
+    try {
+      resendData = await resendResponse.json()
+    } catch (_) {
+      try {
+        resendData = await resendResponse.text()
+      } catch (e) {
+        resendData = 'Could not read response body'
+      }
+    }
 
     if (!resendResponse.ok) {
       console.error('Resend API error:', resendData)
       return new Response(
         JSON.stringify({ 
-          error: 'Wystąpił błąd podczas wysyłania wiadomości' 
+          error: 'Wystąpił błąd podczas wysyłania wiadomości',
+          details: resendData
         }),
         { 
           status: 500, 
@@ -112,13 +123,13 @@ serve(async (req) => {
       )
     }
 
-    console.log('Email sent successfully:', resendData.id)
+    console.log('Email sent successfully:', resendData?.id || resendData)
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Wiadomość została wysłana pomyślnie',
-        emailId: resendData.id
+        emailId: resendData?.id
       }),
       { 
         status: 200, 
@@ -130,7 +141,9 @@ serve(async (req) => {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ 
-        error: 'Wystąpił błąd podczas wysyłania wiadomości' 
+        error: 'Wystąpił błąd podczas wysyłania wiadomości',
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
       }),
       { 
         status: 500, 
