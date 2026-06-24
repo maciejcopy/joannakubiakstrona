@@ -27,7 +27,7 @@ serve(async (req) => {
 
     // Get environment variables
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    const TO_EMAIL = 'kontakt@joannakubiakpsycholog.pl'
+    const TO_EMAIL = 'joannakubiakpsycholog@gmail.com'
 
     // TYMCZASOWO: Wklej tutaj swój klucz API z Resend (zaczyna się od "re_")
     const RESEND_API_KEY_TEMP = 'WKLEJ_TUTAJ_SWOJ_PRAWDZIWY_KLUCZ_API'
