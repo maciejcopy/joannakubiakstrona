@@ -141,6 +141,7 @@ const Contact: React.FC = () => {
             </p>
             <Link
               to="/rezerwacja"
+              state={{ from: '/' }}
               className="inline-flex items-center gap-2 bg-pastel-blue text-white px-9 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
             >
               Sprawdź wolne terminy

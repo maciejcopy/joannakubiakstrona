@@ -84,8 +84,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, allowedRoles }) 
     return (
       <div className="min-h-screen flex items-center justify-center bg-light-green-bg">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-dark-green"></div>
-          <p className="text-dark-green font-medium animate-pulse font-serif">Ładowanie profilu...</p>
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border-4 border-[#C4DEBE]/30"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-[#2F5C3A] animate-spin"></div>
+          </div>
+          <p className="text-[#2F5C3A] font-medium animate-pulse font-serif">Trwa autoryzacja...</p>
         </div>
       </div>
     );

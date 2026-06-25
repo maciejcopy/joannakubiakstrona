@@ -42,17 +42,21 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, subti
           return;
         }
 
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, avatar_url')
+            .select('id, full_name, avatar_url')
             .eq('auth_id', user.id)
             .single();
 
           const name = profile?.full_name || user.email || 'Użytkownik';
           setUserName(name);
           sessionStorage.setItem('panel_user_name', name);
+          if (profile) {
+            sessionStorage.setItem('panel_profile_id', profile.id);
+          }
 
           let avatarSignedUrl = '';
           if (profile?.avatar_url) {
@@ -78,6 +82,7 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, subti
   const handleLogout = async () => {
     sessionStorage.removeItem('panel_user_name');
     sessionStorage.removeItem('panel_avatar_url');
+    sessionStorage.removeItem('panel_profile_id');
     sessionStorage.removeItem('panel_profile_timestamp');
     await supabase.auth.signOut();
     navigate('/');

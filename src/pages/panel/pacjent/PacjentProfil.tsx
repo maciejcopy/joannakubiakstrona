@@ -42,7 +42,8 @@ export const PacjentProfil: React.FC = () => {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         if (!user) return;
         
         setEmail(user.email || '');
@@ -167,8 +168,12 @@ export const PacjentProfil: React.FC = () => {
   return (
     <PanelLayout title="Mój Profil" role="pacjent" sidebarItems={pacjentSidebarItems}>
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2F5C3A]"></div>
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="relative w-10 h-10">
+            <div className="absolute inset-0 rounded-full border-4 border-[#C4DEBE]/30"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-[#2F5C3A] animate-spin"></div>
+          </div>
+          <p className="text-xs font-semibold text-[#2F5C3A]/70 animate-pulse font-serif">Wczytywanie profilu...</p>
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-6 max-w-2xl">

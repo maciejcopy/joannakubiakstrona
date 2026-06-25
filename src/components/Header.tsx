@@ -164,6 +164,7 @@ const Header: React.FC = () => {
 
             <Link
               to="/rezerwacja"
+              state={{ from: location.pathname }}
               className="bg-[#48A7C9] text-white px-6 py-2.5 rounded-full font-semibold hover:bg-[#3A8BA8] transition-all duration-300 shadow-soft"
             >
               Zarezerwuj wizytę
@@ -251,6 +252,7 @@ const Header: React.FC = () => {
 
               <Link
                 to="/rezerwacja"
+                state={{ from: location.pathname }}
                 onClick={() => setIsMenuOpen(false)}
                 className="text-center bg-[#48A7C9] text-white font-semibold py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center justify-center text-lg shadow-soft hover:bg-[#3A8BA8] transition duration-300"
               >

@@ -56,6 +56,7 @@ const HeroSection: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Link
                   to="/rezerwacja"
+                  state={{ from: '/' }}
                   className="bg-pastel-blue text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-soft hover:shadow-xl transform hover:-translate-y-1 focus-visible:outline-offset-4"
                 >
                   Umów konsultację

@@ -50,27 +50,27 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F6FAF4] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-3xl shadow-soft border border-[#C4DEBE]/30">
+    <div className="min-h-screen flex items-center justify-center bg-light-green-bg py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-3xl shadow-soft border border-light-green/30 animate-fade-in">
         <div>
           <div className="flex justify-center">
-            <Link to="/" className="font-serif text-3xl font-bold text-[#2F5C3A] hover:text-[#48A7C9] transition duration-300">
+            <Link to="/" className="font-serif text-3xl font-bold text-dark-green hover:text-pastel-blue transition duration-300">
               Joanna Kubiak
             </Link>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-serif font-bold text-[#2F5C3A]">
+          <h2 className="mt-6 text-center text-3xl font-serif font-bold text-dark-green">
             Zaloguj się do panelu
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Lub{' '}
-            <Link to="/auth/register" className="font-medium text-[#48A7C9] hover:text-[#3A8BA8] transition duration-300">
+            <Link to="/auth/register" className="font-medium text-pastel-blue hover:text-pastel-blue-hover transition duration-300">
               utwórz nowe konto pacjenta
             </Link>
           </p>
         </div>
 
         {errorMsg && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
+          <div className="bg-error-bg border border-error/20 text-error px-4 py-3 rounded-xl text-sm" role="alert">
             <span className="block sm:inline">{errorMsg}</span>
           </div>
         )}
@@ -89,7 +89,7 @@ export const Login: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm transition duration-300"
+                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
                 placeholder="twoj.email@przyklad.pl"
               />
             </div>
@@ -107,7 +107,7 @@ export const Login: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm transition duration-300"
+                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
                 placeholder="••••••••"
               />
             </div>
@@ -117,10 +117,13 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-[#2F5C3A] hover:bg-[#2F5C3A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2F5C3A] transition duration-300 shadow-soft"
+              className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-dark-green hover:bg-dark-green/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dark-green transition duration-300 shadow-soft"
             >
               {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                <div className="relative w-5 h-5">
+                  <div className="absolute inset-0 rounded-full border-2 border-white/30"></div>
+                  <div className="absolute inset-0 rounded-full border-2 border-t-transparent border-white animate-spin"></div>
+                </div>
               ) : (
                 'Zaloguj się'
               )}
@@ -129,7 +132,7 @@ export const Login: React.FC = () => {
         </form>
 
         <div className="text-center mt-4">
-          <Link to="/" className="text-sm text-gray-500 hover:text-[#2F5C3A] transition duration-300">
+          <Link to="/" className="text-sm text-gray-500 hover:text-dark-green transition duration-300">
             ← Powrót do strony głównej
           </Link>
         </div>

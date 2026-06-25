@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { pacjentSidebarItems } from '../../../config/sidebarConfig';
@@ -25,21 +25,38 @@ interface Booking {
 export const PacjentDashboard: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Przekierowanie do rezerwacji z tabem
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'rezerwacja') {
+      navigate('/rezerwacja', { state: { from: '/panel/pacjent/dashboard' } });
+    }
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        let profileId = sessionStorage.getItem('panel_profile_id');
 
-        // Pobierz profil pacjenta
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('auth_id', user.id)
-          .single();
+        if (!profileId) {
+          const { data: { session } } = await supabase.auth.getSession();
+          const user = session?.user;
+          if (!user) return;
 
-        if (!profile) return;
+          // Pobierz profil pacjenta
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('auth_id', user.id)
+            .single();
+
+          if (!profile) return;
+          profileId = profile.id;
+          sessionStorage.setItem('panel_profile_id', profile.id);
+        }
 
         // Pobierz jego rezerwacje wraz z relacjami
         const { data, error } = await supabase
@@ -52,7 +69,7 @@ export const PacjentDashboard: React.FC = () => {
             booking_statuses(label, name),
             location_types(label)
           `)
-          .eq('client_id', profile.id)
+          .eq('client_id', profileId)
           .order('scheduled_at', { ascending: true });
 
         if (error) throw error;
@@ -81,6 +98,7 @@ export const PacjentDashboard: React.FC = () => {
           </div>
           <Link
             to="/rezerwacja"
+            state={{ from: '/panel/pacjent/dashboard' }}
             className="px-6 py-3 bg-[#48A7C9] hover:bg-[#3A8BA8] text-white font-medium rounded-xl transition duration-300 shadow-soft flex items-center gap-2"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,8 +109,12 @@ export const PacjentDashboard: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2F5C3A]"></div>
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <div className="relative w-10 h-10">
+              <div className="absolute inset-0 rounded-full border-4 border-[#C4DEBE]/30"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-[#2F5C3A] animate-spin"></div>
+            </div>
+            <p className="text-xs font-semibold text-[#2F5C3A]/70 animate-pulse font-serif">Wczytywanie wizyt...</p>
           </div>
         ) : (
           <div className="space-y-6">
