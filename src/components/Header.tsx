@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Sun } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const Header: React.FC = () => {
@@ -9,6 +9,8 @@ const Header: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -91,18 +93,27 @@ const Header: React.FC = () => {
 
           {/* Nawigacja desktop */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <button
-              onClick={() => scrollToSection('strona-glowna')}
-              className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
-            >
-              Strona główna
-            </button>
-            <button
-              onClick={() => scrollToSection('kontakt')}
+            {isHome ? (
+              <button
+                onClick={() => scrollToSection('strona-glowna')}
+                className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
+              >
+                Strona główna
+              </button>
+            ) : (
+              <Link
+                to="/"
+                className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
+              >
+                Strona główna
+              </Link>
+            )}
+            <Link
+              to="/kontakt"
               className="text-gray-600 hover:text-pastel-blue transition-colors duration-300 font-medium"
             >
               Kontakt
-            </button>
+            </Link>
             
             {session ? (
               <div className="relative">
@@ -172,18 +183,29 @@ const Header: React.FC = () => {
         {isMenuOpen && (
           <div className="lg:hidden bg-warm-beige border-t border-light-green py-6 shadow-soft">
             <nav className="flex flex-col space-y-2">
-              <button
-                onClick={() => scrollToSection('strona-glowna')}
-                className="text-left text-gray-700 hover:text-pastel-blue hover:bg-light-green-bg transition-all duration-300 font-medium py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center text-lg"
-              >
-                Strona główna
-              </button>
-              <button
-                onClick={() => scrollToSection('kontakt')}
+              {isHome ? (
+                <button
+                  onClick={() => scrollToSection('strona-glowna')}
+                  className="text-left text-gray-700 hover:text-pastel-blue hover:bg-light-green-bg transition-all duration-300 font-medium py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center text-lg"
+                >
+                  Strona główna
+                </button>
+              ) : (
+                <Link
+                  to="/"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-left text-gray-700 hover:text-pastel-blue hover:bg-light-green-bg transition-all duration-300 font-medium py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center text-lg"
+                >
+                  Strona główna
+                </Link>
+              )}
+              <Link
+                to="/kontakt"
+                onClick={() => setIsMenuOpen(false)}
                 className="text-left text-gray-700 hover:text-pastel-blue hover:bg-light-green-bg transition-all duration-300 font-medium py-4 px-4 rounded-lg mx-2 min-h-[44px] flex items-center text-lg"
               >
                 Kontakt
-              </button>
+              </Link>
               
               {session ? (
                 <>

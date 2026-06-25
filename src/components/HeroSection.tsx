@@ -1,10 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
-  const scrollToContact = () => {
-    const contactSection = document.getElementById('kontakt');
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: 'smooth' });
+  const scrollToKompetencje = () => {
+    const section = document.getElementById('kompetencje');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -51,13 +52,21 @@ const HeroSection: React.FC = () => {
                 </div>
               </div>
 
-              {/* Przycisk CTA */}
-              <button 
-                onClick={scrollToContact}
-                className="bg-pastel-blue text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-soft hover:shadow-xl transform hover:-translate-y-1 focus-visible:outline-offset-4"
-              >
-                UMÓW KONSULTACJĘ
-              </button>
+              {/* Przyciski CTA */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Link
+                  to="/rezerwacja"
+                  className="bg-pastel-blue text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-soft hover:shadow-xl transform hover:-translate-y-1 focus-visible:outline-offset-4"
+                >
+                  Umów konsultację
+                </Link>
+                <button
+                  onClick={scrollToKompetencje}
+                  className="text-dark-green font-medium text-base hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline"
+                >
+                  Jak wygląda pierwsza wizyta? →
+                </button>
+              </div>
             </div>
             
             {/* Right side - image - hidden on mobile, visible on desktop */}

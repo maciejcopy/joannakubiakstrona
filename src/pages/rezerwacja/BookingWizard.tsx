@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
+import { UserPlus, LogIn, Calendar } from 'lucide-react';
 
 interface VisitType {
   id: string;
@@ -15,6 +16,8 @@ export const BookingWizard: React.FC = () => {
   const [step, setStep] = useState(1);
   const [visitTypes, setVisitTypes] = useState<VisitType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedVisitType, setSelectedVisitType] = useState<VisitType | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -27,7 +30,16 @@ export const BookingWizard: React.FC = () => {
   
   const navigate = useNavigate();
 
+  // Sprawdzenie sesji
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setAuthChecked(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     async function fetchVisitTypes() {
       try {
         const { data, error } = await supabase
@@ -44,7 +56,7 @@ export const BookingWizard: React.FC = () => {
       }
     }
     fetchVisitTypes();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleSelectService = (service: VisitType) => {
     setSelectedVisitType(service);
@@ -63,6 +75,70 @@ export const BookingWizard: React.FC = () => {
     toast.success('Rezerwacja wysłana! Szczegółowa logika rezerwacji zostanie dołączona w kolejnych etapach.');
     navigate('/');
   };
+
+  // Ładowanie sprawdzenia auth
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-[#F6FAF4] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#2F5C3A]" />
+      </div>
+    );
+  }
+
+  // Niezalogowany – ekran zachęty do rejestracji
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#F6FAF4] flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-soft border border-[#C4DEBE]/30 overflow-hidden">
+            {/* Nagłówek */}
+            <div className="bg-[#2F5C3A] px-8 py-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-4">
+                <Calendar className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-serif font-bold text-white mb-2">Rezerwacja wizyty</h1>
+              <p className="text-[#C4DEBE] text-sm">
+                Aby zarezerwować wizytę, potrzebujesz konta pacjenta
+              </p>
+            </div>
+
+            {/* Treść */}
+            <div className="px-8 py-8">
+              <p className="text-gray-600 text-sm text-center mb-8 leading-relaxed">
+                Konto pozwala Ci zarządzać wizytami, przeglądać historię sesji i otrzymywać przypomnienia o nadchodzących terminach.
+              </p>
+
+              <div className="space-y-3">
+                <Link
+                  to="/auth/register"
+                  state={{ returnTo: '/panel/pacjent/dashboard?tab=rezerwacja' }}
+                  className="flex items-center justify-center gap-3 w-full bg-[#48A7C9] hover:bg-[#3A8BA8] text-white py-4 px-6 rounded-xl font-semibold transition-all duration-300 shadow-soft hover:-translate-y-0.5 transform"
+                >
+                  <UserPlus className="w-5 h-5" />
+                  Zarejestruj się i zarezerwuj wizytę
+                </Link>
+
+                <Link
+                  to="/auth/login"
+                  state={{ returnTo: '/panel/pacjent/dashboard?tab=rezerwacja' }}
+                  className="flex items-center justify-center gap-3 w-full bg-white border-2 border-[#C4DEBE] hover:border-[#2F5C3A] text-[#2F5C3A] py-4 px-6 rounded-xl font-semibold transition-all duration-300"
+                >
+                  <LogIn className="w-5 h-5" />
+                  Mam już konto – zaloguj się
+                </Link>
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-gray-100 text-center">
+                <Link to="/" className="text-sm text-gray-400 hover:text-[#2F5C3A] transition-colors">
+                  ← Wróć na stronę główną
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F6FAF4] py-12 px-4 sm:px-6 lg:px-8">

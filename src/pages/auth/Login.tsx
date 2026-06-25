@@ -25,6 +25,9 @@ export const Login: React.FC = () => {
 
       if (error) throw error;
 
+      // Sprawdź returnTo ze state (np. po przekierowaniu z rezerwacji)
+      const returnTo = (location.state as any)?.returnTo;
+
       // Sprawdź rolę, aby przekierować w odpowiednie miejsce
       const { data: profile } = await supabase
         .from('profiles')
@@ -32,7 +35,9 @@ export const Login: React.FC = () => {
         .eq('auth_id', data.user.id)
         .single();
 
-      if (profile?.role === 'admin') {
+      if (returnTo) {
+        navigate(returnTo);
+      } else if (profile?.role === 'admin') {
         navigate('/panel/admin/dashboard');
       } else {
         navigate('/panel/pacjent/dashboard');

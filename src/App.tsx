@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
+import ContactPage from './pages/ContactPage';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { BookingWizard } from './pages/rezerwacja/BookingWizard';
@@ -62,6 +63,7 @@ function App() {
       <Routes>
         {/* Publiczne ścieżki */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/kontakt" element={<ContactPage />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
         <Route path="/rezerwacja" element={<BookingWizard />} />

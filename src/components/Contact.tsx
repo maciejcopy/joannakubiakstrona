@@ -1,314 +1,154 @@
-import React, { useState } from 'react';
-import { Phone, Mail, MapPin, Send, Wifi } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Phone, Mail, MapPin, Wifi, Calendar, ArrowRight } from 'lucide-react';
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const locations = [
+    { name: 'Przychodnia Multi-Medic', address: 'Cieszkowskiego 100/102, Swarzędz' },
+    { name: 'Med+ Centrum Medyczne', address: 'Poznań' },
+    { name: 'Centrum Zdrowia AGVITA', address: 'ul. Promienista 6, Poznań' },
+  ];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('🚀 ROZPOCZĘCIE DEBUGOWANIA FORMULARZA');
-    console.log('1️⃣ Formularz został wysłany');
-    
-    setIsLoading(true);
-    setError('');
-
-    // SPRAWDZENIE 1: Zmienne środowiskowe
-    console.log('2️⃣ SPRAWDZENIE ZMIENNYCH:');
-    console.log('   VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('   VITE_SUPABASE_ANON_KEY exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
-    console.log('   VITE_SUPABASE_ANON_KEY length:', import.meta.env.VITE_SUPABASE_ANON_KEY?.length);
-
-    // Check if Supabase is configured
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co') {
-      console.log('❌ BŁĄD: Supabase nie skonfigurowany');
-      setError('Formularz nie jest jeszcze skonfigurowany. Skontaktuj się bezpośrednio: kontakt@joannakubiakpsycholog.pl');
-      setIsLoading(false);
-      return;
-    }
-
-    // SPRAWDZENIE 2: URL i Headers
-    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    };
-    
-    console.log('3️⃣ SPRAWDZENIE URL I HEADERS:');
-    console.log('   Function URL:', functionUrl);
-    console.log('   Headers:', headers);
-    console.log('   Form data:', formData);
-
-    // SPRAWDZENIE 3: Test OPTIONS (CORS preflight)
-    console.log('4️⃣ TEST OPTIONS (CORS):');
-    try {
-      const optionsResponse = await fetch(functionUrl, {
-        method: 'OPTIONS',
-        headers: headers,
-      });
-      console.log('   OPTIONS status:', optionsResponse.status);
-      console.log('   OPTIONS ok:', optionsResponse.ok);
-      console.log('   OPTIONS headers:', Object.fromEntries(optionsResponse.headers.entries()));
-    } catch (optionsError) {
-      console.log('   ❌ OPTIONS failed:', optionsError);
-    }
-    
-    try {
-      console.log('5️⃣ WYSYŁANIE POST REQUEST:');
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(formData),
-      });
-
-      console.log('6️⃣ ODPOWIEDŹ SERWERA:');
-      console.log('   Status:', response.status);
-      console.log('   OK:', response.ok);
-      console.log('   Status Text:', response.statusText);
-      console.log('   Headers:', Object.fromEntries(response.headers.entries()));
-      
-      const result = await response.json();
-      console.log('   Response data:', JSON.stringify(result, null, 2));
-
-      if (response.ok) {
-        console.log('✅ SUKCES!');
-        setIsSubmitted(true);
-        // Reset form after 5 seconds
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setFormData({ name: '', email: '', phone: '', message: '' });
-        }, 5000);
-      } else {
-        console.log('❌ API ERROR:', JSON.stringify(result, null, 2));
-        const detailsStr = result.details ? (typeof result.details === 'object' ? JSON.stringify(result.details) : result.details) : '';
-        setError(detailsStr ? `Błąd: ${detailsStr}` : (result.error || `Błąd ${response.status}: Wystąpił błąd podczas wysyłania wiadomości`));
-      }
-    } catch (err) {
-      console.log('❌ NETWORK ERROR:', err);
-      console.log('   Error name:', err.name);
-      console.log('   Error message:', err.message);
-      console.log('   Error stack:', err.stack);
-      setError(`Błąd sieci: ${err.message}. Sprawdź połączenie internetowe.`);
-    } finally {
-      console.log('🏁 KONIEC DEBUGOWANIA');
-      setIsLoading(false);
-    }
-  };
+  const pricingItems = [
+    { label: 'Konsultacja indywidualna', duration: '50 min', price: '200 zł' },
+    { label: 'Konsultacja online', duration: '50 min', price: '200 zł' },
+  ];
 
   return (
     <section id="kontakt" className="py-20 lg:py-28 bg-light-green-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4 text-balance">Kontakt</h2>
+
+        {/* Header */}
+        <div className="text-center mb-14">
+          <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4 text-balance">
+            Cennik i lokalizacje
+          </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto text-pretty">
-            Skontaktuj się ze mną, aby umówić konsultację lub zadać pytania
+            Przyjmuję w trzech gabinetach w Poznaniu i Swarzędzu oraz online
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Information */}
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 shadow-soft">
-              <h3 className="text-2xl font-bold text-dark-green mb-6">Dane kontaktowe</h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-light-green p-3 rounded-full">
-                    <Phone className="w-6 h-6 text-dark-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-green">Telefon</p>
-                    <p className="text-gray-600">+48 729 933 833</p>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
 
-                <div className="flex items-center space-x-4">
-                  <div className="bg-light-green p-3 rounded-full">
-                    <Mail className="w-6 h-6 text-dark-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-green">Email</p>
-                    <p className="text-gray-600 text-sm sm:text-base">kontakt@joannakubiakpsycholog.pl</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-soft">
-              <h3 className="text-xl font-bold text-dark-green mb-6">Lokalizacja</h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-light-green p-3 rounded-full flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-dark-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-green">Adres 1</p>
-                    <p className="text-gray-600">Przychodnia Lekarska Multi-Medic</p>
-                    <p className="text-gray-600">Cieszkowskiego 100/102, Swarzędz</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="bg-light-green p-3 rounded-full flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-dark-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-green">Adres 2</p>
-                    <p className="text-gray-600">Med+ Centrum Medyczne Poznań</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="bg-light-green p-3 rounded-full flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-dark-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-green">Adres 3</p>
-                    <p className="text-gray-600">Centrum Zdrowia AGVITA</p>
-                    <p className="text-gray-600">ul. Promienista 6, Poznań</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="bg-light-green p-3 rounded-full flex-shrink-0">
-                    <Wifi className="w-6 h-6 text-dark-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark-green">Konsultacja online</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-soft flex items-center justify-center text-center">
-              <h3 className="text-lg font-bold text-dark-green">Konsultacja 50 min - 200 zł</h3>
-            </div>
-          </div>
-
-          {/* Contact Form */}
+          {/* Cennik */}
           <div className="bg-white rounded-2xl p-8 shadow-soft">
-            {!isSubmitted ? (
-              <>
-                <h3 className="text-2xl font-bold text-dark-green mb-6">Napisz do mnie</h3>
-                
-                {error && (
-                  <div className="bg-error-bg border border-error/30 text-error px-4 py-3 rounded-lg mb-6">
-                    {error}
-                  </div>
-                )}
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <h3 className="text-xl font-bold text-dark-green mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent-yellow inline-block" />
+              Cennik
+            </h3>
+            <div className="space-y-4">
+              {pricingItems.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-dark-green mb-2">
-                      Imię i nazwisko
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors"
-                      placeholder="Twoje imię i nazwisko"
-                    />
+                    <p className="font-medium text-dark-green">{item.label}</p>
+                    <p className="text-sm text-gray-400">{item.duration}</p>
                   </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-dark-green mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors"
-                      placeholder="twoj@email.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-dark-green mb-2">
-                      Telefon (opcjonalnie)
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors"
-                      placeholder="+48 123 456 789"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-dark-green mb-2">
-                      Wiadomość
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-blue focus:border-transparent transition-colors resize-none"
-                      placeholder="Opisz swoją sytuację lub zadaj pytanie..."
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-pastel-blue text-white py-3 px-6 rounded-lg font-semibold hover:bg-pastel-blue-hover transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Wysyłanie...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        <span>Wyślij wiadomość</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <div className="bg-light-green p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Send className="w-8 h-8 text-dark-green" />
+                  <span className="text-xl font-bold text-pastel-blue">{item.price}</span>
                 </div>
-                <h3 className="text-2xl font-bold text-dark-green mb-2">Dziękuję za wiadomość!</h3>
-                <p className="text-gray-600">
-                  Wiadomość została wysłana pomyślnie. Odpowiem w ciągu 24 godzin.
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-light-green-bg rounded-xl">
+              <div className="flex items-center gap-3">
+                <Wifi className="w-5 h-5 text-dark-green flex-shrink-0" />
+                <p className="text-sm text-gray-600">
+                  Dostępne wizyty <span className="font-semibold text-dark-green">stacjonarne i online</span>
                 </p>
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Lokalizacje */}
+          <div className="bg-white rounded-2xl p-8 shadow-soft">
+            <h3 className="text-xl font-bold text-dark-green mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-pastel-blue inline-block" />
+              Gabinety
+            </h3>
+            <div className="space-y-5">
+              {locations.map((loc, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="bg-light-green p-2 rounded-lg flex-shrink-0 mt-0.5">
+                    <MapPin className="w-4 h-4 text-dark-green" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-dark-green text-sm">{loc.name}</p>
+                    <p className="text-gray-500 text-sm">{loc.address}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Kontakt */}
+          <div className="bg-white rounded-2xl p-8 shadow-soft">
+            <h3 className="text-xl font-bold text-dark-green mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent-orange inline-block" />
+              Kontakt bezpośredni
+            </h3>
+            <div className="space-y-5">
+              <a href="tel:+48729933833" className="flex items-center gap-4 group">
+                <div className="bg-light-green p-3 rounded-full group-hover:bg-pastel-blue/10 transition-colors">
+                  <Phone className="w-5 h-5 text-dark-green" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Telefon</p>
+                  <p className="font-semibold text-dark-green group-hover:text-pastel-blue transition-colors">
+                    +48 729 933 833
+                  </p>
+                </div>
+              </a>
+
+              <a href="mailto:kontakt@joannakubiakpsycholog.pl" className="flex items-center gap-4 group">
+                <div className="bg-light-green p-3 rounded-full group-hover:bg-pastel-blue/10 transition-colors">
+                  <Mail className="w-5 h-5 text-dark-green" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Email</p>
+                  <p className="font-semibold text-dark-green text-sm group-hover:text-pastel-blue transition-colors">
+                    kontakt@joannakubiakpsycholog.pl
+                  </p>
+                </div>
+              </a>
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <p className="text-sm text-gray-500">
+                Wolisz najpierw napisać?{' '}
+                <Link to="/kontakt" className="text-pastel-blue hover:underline font-medium">
+                  Skorzystaj z formularza kontaktowego
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* Główny baner CTA */}
+        <div className="relative overflow-hidden bg-dark-green rounded-3xl px-8 py-14 text-center shadow-soft">
+          {/* Dekoracyjne kółka w tle */}
+          <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+          <div className="absolute top-4 right-16 w-16 h-16 rounded-full bg-accent-yellow/20 pointer-events-none" />
+
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 bg-white/10 text-light-green text-sm font-medium px-4 py-1.5 rounded-full mb-5">
+              <Calendar className="w-4 h-4" />
+              Rezerwacja online – szybko i wygodnie
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-balance font-serif">
+              Zrób pierwszy krok — zarezerwuj wizytę już dziś
+            </h2>
+            <p className="text-light-green/80 mb-8 text-base max-w-lg mx-auto">
+              Wybierz dogodny termin w naszym kalendarzu online. Zajmie Ci to tylko 2 minuty.
+            </p>
+            <Link
+              to="/rezerwacja"
+              className="inline-flex items-center gap-2 bg-pastel-blue text-white px-9 py-4 rounded-full font-semibold text-lg hover:bg-pastel-blue-hover transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
+            >
+              Sprawdź wolne terminy
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+
       </div>
     </section>
   );
