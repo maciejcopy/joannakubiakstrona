@@ -12,6 +12,7 @@ interface VisitType {
   price: number;
   duration: number;
   is_active: boolean;
+  cal_slug?: string;
 }
 
 export const AdminSesje: React.FC = () => {
@@ -27,6 +28,7 @@ export const AdminSesje: React.FC = () => {
   const [price, setPrice] = useState(150);
   const [duration, setDuration] = useState(50);
   const [isActive, setIsActive] = useState(true);
+  const [calSlug, setCalSlug] = useState('');
 
   const fetchSessions = async () => {
     try {
@@ -56,6 +58,7 @@ export const AdminSesje: React.FC = () => {
     setPrice(150);
     setDuration(50);
     setIsActive(true);
+    setCalSlug('');
     setShowModal(true);
   };
 
@@ -66,6 +69,7 @@ export const AdminSesje: React.FC = () => {
     setPrice(session.price);
     setDuration(session.duration);
     setIsActive(session.is_active);
+    setCalSlug(session.cal_slug || '');
     setShowModal(true);
   };
 
@@ -83,7 +87,7 @@ export const AdminSesje: React.FC = () => {
         // Edit mode
         const { error } = await supabase
           .from('visit_types')
-          .update({ title, description, price, duration, is_active: isActive })
+          .update({ title, description, price, duration, is_active: isActive, cal_slug: calSlug })
           .eq('id', editingSession.id);
 
         if (error) throw error;
@@ -92,15 +96,16 @@ export const AdminSesje: React.FC = () => {
         // Create mode
         const { error } = await supabase
           .from('visit_types')
-          .insert({ title, description, price, duration, is_active: isActive });
+          .insert({ title, description, price, duration, is_active: isActive, cal_slug: calSlug });
 
         if (error) throw error;
         toast.success('Dodano nową usługę!');
       }
       setShowModal(false);
       fetchSessions();
-    } catch (err: any) {
-      toast.error('Wystąpił błąd: ' + err.message);
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Wystąpił błąd: ' + error.message);
     } finally {
       setIsConfirmOpen(false);
     }
@@ -152,6 +157,11 @@ export const AdminSesje: React.FC = () => {
                 </div>
                 <h4 className="font-serif font-bold text-lg text-[#2F5C3A] mb-2">{s.title}</h4>
                 <p className="text-sm text-gray-600 mb-4 line-clamp-3">{s.description || 'Brak opisu.'}</p>
+                {s.cal_slug && (
+                  <p className="text-xs text-gray-400 mb-4 flex items-center gap-1">
+                    <span className="font-bold">Cal.com Slug:</span> {s.cal_slug}
+                  </p>
+                )}
                 <div className="pt-3 border-t border-gray-100 flex justify-between text-xs text-gray-500 font-semibold">
                   <span>Czas: {s.duration} min</span>
                   <span className="text-gray-800">{s.price} zł</span>
@@ -191,6 +201,18 @@ export const AdminSesje: React.FC = () => {
                   className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl text-sm"
                   placeholder="np. Konsultacja indywidualna"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Cal.com Event Slug</label>
+                <input
+                  type="text"
+                  value={calSlug}
+                  onChange={(e) => setCalSlug(e.target.value)}
+                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl text-sm"
+                  placeholder="np. konsultacja-indywidualna"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Końcówka adresu URL Twojego wydarzenia z konta Cal.com.</p>
               </div>
 
               <div>

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
-import { UserPlus, LogIn, Calendar, X } from 'lucide-react';
+import { UserPlus, LogIn, Calendar, X, CheckCircle } from 'lucide-react';
 import { LandingPage } from '../LandingPage';
 import { PacjentDashboard } from '../panel/pacjent/PacjentDashboard';
+import Cal, { getCalApi } from "@calcom/embed-react";
 
 interface VisitType {
   id: string;
@@ -12,6 +13,7 @@ interface VisitType {
   description: string;
   price: number;
   duration: number;
+  cal_slug?: string;
 }
 
 export const BookingWizard: React.FC = () => {
@@ -21,10 +23,9 @@ export const BookingWizard: React.FC = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedVisitType, setSelectedVisitType] = useState<VisitType | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
   
   // Dane pacjenta
+  const [profileId, setProfileId] = useState('');
   const [fullName, setFullName] = useState('');
   const [phonePrefix, setPhonePrefix] = useState('+48');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -43,7 +44,7 @@ export const BookingWizard: React.FC = () => {
     });
   }, []);
 
-  // Pobranie danych profilu w celu automatycznego uzupełnienia formularza
+  // Prefill profile data and initialize Cal.com Embed API
   useEffect(() => {
     if (!isAuthenticated) return;
     async function fetchUserData() {
@@ -55,11 +56,12 @@ export const BookingWizard: React.FC = () => {
           
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, phone_prefix, phone_number')
+            .select('id, full_name, phone_prefix, phone_number')
             .eq('auth_id', user.id)
             .single();
           
           if (profile) {
+            setProfileId(profile.id);
             setFullName(profile.full_name || '');
             if (profile.phone_prefix) setPhonePrefix(profile.phone_prefix);
             if (profile.phone_number) setPhoneNumber(profile.phone_number);
@@ -71,6 +73,32 @@ export const BookingWizard: React.FC = () => {
     }
     fetchUserData();
   }, [isAuthenticated]);
+
+  // Initialize Cal.com and setup event listeners
+  useEffect(() => {
+    (async function () {
+      try {
+        const cal = await getCalApi();
+        cal("ui", {
+          styles: { branding: { brandColor: "#2F5C3A" } },
+          hideEventTypeDetails: true,
+          layout: "month_view"
+        });
+        
+        // Register booking successful listener
+        cal("on", {
+          action: "bookingSuccessfulV2",
+          callback: (e: { detail: { data: unknown } }) => {
+            console.log("Cal.com booking success event:", e.detail);
+            toast.success("Wizyta została pomyślnie zarezerwowana!");
+            setStep(3); // Go to success confirmation screen
+          }
+        });
+      } catch (err) {
+        console.error("Failed to initialize Cal.com SDK:", err);
+      }
+    })();
+  }, []);
 
   // Pobranie dostępnych typów wizyt
   useEffect(() => {
@@ -96,19 +124,6 @@ export const BookingWizard: React.FC = () => {
   const handleSelectService = (service: VisitType) => {
     setSelectedVisitType(service);
     setStep(2);
-  };
-
-  const handleSelectDateTime = (date: string, time: string) => {
-    setSelectedDate(date);
-    setSelectedTime(time);
-    setStep(3);
-  };
-
-  const handleSubmitBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Logika rezerwacji
-    toast.success('Rezerwacja wysłana! Szczegółowa logika rezerwacji zostanie dołączona w kolejnych etapach.');
-    navigate(fromPath);
   };
 
   // Stan inicjalnego sprawdzania autoryzacji
@@ -272,119 +287,97 @@ export const BookingWizard: React.FC = () => {
             )}
 
             {step === 2 && (
-              <div>
-                <h2 className="text-xl font-serif font-bold text-dark-green mb-6">Wybierz dogodny termin</h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  Wybrana usługa: <strong className="text-dark-green">{selectedVisitType?.title}</strong>
-                </p>
-                
-                <div className="bg-gray-50 rounded-2xl p-8 text-center border border-gray-100">
-                  <p className="text-sm text-gray-500 mb-4">Wybierz przykładowy termin testowy:</p>
-                  <div className="flex flex-wrap gap-2 justify-center">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* Lewa kolumna: Kalendarz Cal.com */}
+                <div className="lg:col-span-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm min-h-[500px]">
+                  <h2 className="text-xl font-serif font-bold text-dark-green mb-4 px-2">Wybierz dogodny termin</h2>
+                  <Cal
+                    calLink={`joanna-kubiak-0ojprl/${selectedVisitType?.cal_slug || 'konsultacja-indywidualna'}`}
+                    style={{ width: "100%", height: "550px", overflow: "scroll" }}
+                    config={{
+                      name: fullName,
+                      email: email,
+                      phone: `${phonePrefix}${phoneNumber}`,
+                      "metadata[userId]": profileId,
+                      "metadata[visitTypeId]": selectedVisitType?.id
+                    }}
+                  />
+                  <div className="mt-4 px-2">
                     <button
-                      onClick={() => handleSelectDateTime('2026-06-15', '09:00')}
-                      className="px-4 py-2 bg-white border border-gray-200 rounded-xl hover:border-dark-green hover:bg-light-green-bg/50 transition duration-300 text-sm font-medium text-dark-green"
+                      onClick={() => setStep(1)}
+                      className="px-6 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition duration-300"
                     >
-                      15 Czerwca (Poniedziałek), 09:00
-                    </button>
-                    <button
-                      onClick={() => handleSelectDateTime('2026-06-15', '11:30')}
-                      className="px-4 py-2 bg-white border border-gray-200 rounded-xl hover:border-dark-green hover:bg-light-green-bg/50 transition duration-300 text-sm font-medium text-dark-green"
-                    >
-                      15 Czerwca (Poniedziałek), 11:30
-                    </button>
-                    <button
-                      onClick={() => handleSelectDateTime('2026-06-16', '14:00')}
-                      className="px-4 py-2 bg-white border border-gray-200 rounded-xl hover:border-dark-green hover:bg-light-green-bg/50 transition duration-300 text-sm font-medium text-dark-green"
-                    >
-                      16 Czerwca (Wtorek), 14:00
+                      Wstecz
                     </button>
                   </div>
                 </div>
-                
-                <div className="mt-8 flex justify-between">
-                  <button
-                    onClick={() => setStep(1)}
-                    className="px-6 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition duration-300"
-                  >
-                    Wstecz
-                  </button>
+
+                {/* Prawa kolumna: Informacje o specjaliście i usłudze */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Zdjęcie i krótki opis */}
+                  <div className="bg-[#FBF4E8] rounded-3xl p-6 border border-[#E8DFC9]/40 text-center">
+                    <img
+                      src="/zdjęcia/joanna_kubiak.jpg"
+                      alt="mgr Joanna Kubiak"
+                      onError={(e) => {
+                        // Fallback w razie gdyby ścieżka do zdjęcia była inna
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop";
+                      }}
+                      className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-white shadow-soft mb-4"
+                    />
+                    <h3 className="font-serif font-bold text-lg text-dark-green">mgr Joanna Kubiak</h3>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Psycholog dziecięcy i młodzieży</p>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      Konsultacja odbywa się w bezpiecznej, wspierającej atmosferze. Zapraszam do wyboru dogodnego terminu w kalendarzu obok.
+                    </p>
+                  </div>
+
+                  {/* Szczegóły usługi */}
+                  <div className="bg-[#2F5C3A] rounded-3xl p-6 text-white shadow-soft">
+                    <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 px-2.5 py-1 rounded-full">Szczegóły usługi</span>
+                    <h4 className="font-serif font-bold text-xl mt-3 mb-2">{selectedVisitType?.title}</h4>
+                    <p className="text-sm text-[#C4DEBE] line-clamp-3 mb-4">{selectedVisitType?.description}</p>
+                    <div className="flex justify-between items-center pt-4 border-t border-white/10 text-sm font-semibold">
+                      <span>Czas: {selectedVisitType?.duration} min</span>
+                      <span className="text-lg font-serif font-bold">{selectedVisitType?.price} zł</span>
+                    </div>
+                  </div>
+
+                  {/* Informacja o Stripe / płatnościach */}
+                  <div className="bg-[#F6FAF4] rounded-3xl p-6 border border-[#C4DEBE]/35 text-sm text-gray-600 space-y-2">
+                    <div className="flex gap-2 items-start">
+                      <span className="p-1 bg-[#C4DEBE]/40 text-[#2F5C3A] rounded-lg mt-0.5">💡</span>
+                      <p>Wizytę można zarezerwować od razu. Płatność za sesję odbędzie się na miejscu w gabinecie lub przelewem.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             {step === 3 && (
-              <form onSubmit={handleSubmitBooking}>
-                <h2 className="text-xl font-serif font-bold text-dark-green mb-6">Uzupełnij swoje dane kontaktowe</h2>
-                
-                <div className="bg-light-green-bg/50 border border-light-green/35 rounded-2xl p-6 mb-6">
-                  <h3 className="font-serif font-bold text-dark-green mb-2 text-sm">Podsumowanie wyboru:</h3>
-                  <ul className="text-sm space-y-1.5 text-gray-700">
-                    <li>Usługa: <strong>{selectedVisitType?.title}</strong> ({selectedVisitType?.price} zł)</li>
-                    <li>Termin: <strong>{selectedDate} o godzinie {selectedTime}</strong></li>
-                  </ul>
+              <div className="text-center py-12 px-4 max-w-md mx-auto">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-[#F6FAF4] text-[#2F5C3A] rounded-full mb-6 border-2 border-[#C4DEBE]">
+                  <CheckCircle className="w-10 h-10" />
                 </div>
-
-                <div className="space-y-4 mb-8">
-                  <div>
-                    <label htmlFor="fullname-input" className="block text-sm font-medium text-gray-700">Imię i nazwisko</label>
-                    <input
-                      id="fullname-input"
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="email-input" className="block text-sm font-medium text-gray-700">Email</label>
-                    <input
-                      id="email-input"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="phone-input" className="block text-sm font-medium text-gray-700">Numer telefonu</label>
-                    <div className="flex gap-2 mt-1">
-                      <input
-                        type="text"
-                        value={phonePrefix}
-                        onChange={(e) => setPhonePrefix(e.target.value)}
-                        className="w-20 px-3 py-2.5 border border-gray-300 rounded-xl text-center sm:text-sm"
-                      />
-                      <input
-                        id="phone-input"
-                        type="tel"
-                        required
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
+                <h2 className="text-3xl font-serif font-bold text-dark-green mb-4">Rezerwacja zakończona!</h2>
+                <p className="text-gray-600 text-sm mb-8 leading-relaxed">
+                  Twoja wizyta na usługę <strong>{selectedVisitType?.title}</strong> została pomyślnie zapisana. Joanna otrzymała powiadomienie o nowej rezerwacji. Szczegóły oraz link do spotkania online (jeśli dotyczy) znajdziesz w swoim panelu pacjenta.
+                </p>
+                <div className="space-y-3">
                   <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="px-6 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition duration-300"
+                    onClick={() => navigate('/panel/pacjent/dashboard')}
+                    className="w-full bg-[#2F5C3A] hover:bg-[#2F5C3A]/90 text-white font-semibold py-3 px-6 rounded-xl transition duration-300 shadow-soft"
                   >
-                    Wstecz
+                    Przejdź do panelu pacjenta
                   </button>
                   <button
-                    type="submit"
-                    className="px-6 py-2.5 border border-transparent text-sm font-medium rounded-xl text-white bg-dark-green hover:bg-dark-green/90 transition duration-300 shadow-soft"
+                    onClick={() => navigate('/')}
+                    className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl transition duration-300"
                   >
-                    Potwierdź rezerwację
+                    Wróć do strony głównej
                   </button>
                 </div>
-              </form>
+              </div>
             )}
           </div>
         </div>

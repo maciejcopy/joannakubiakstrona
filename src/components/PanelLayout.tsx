@@ -32,51 +32,77 @@ export const PanelLayout: React.FC<PanelLayoutProps> = ({ children, title, subti
   useEffect(() => {
     async function fetchUserProfile() {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+
+        if (!user) {
+          sessionStorage.removeItem('panel_user_name');
+          sessionStorage.removeItem('panel_avatar_url');
+          sessionStorage.removeItem('panel_profile_id');
+          sessionStorage.removeItem('panel_profile_timestamp');
+          sessionStorage.removeItem('panel_user_id_auth');
+          setUserName('');
+          setAvatarUrl(null);
+          return;
+        }
+
+        const cachedUserId = sessionStorage.getItem('panel_user_id_auth');
         const cachedName = sessionStorage.getItem('panel_user_name');
         const cachedAvatar = sessionStorage.getItem('panel_avatar_url');
         const cachedTime = sessionStorage.getItem('panel_profile_timestamp');
         const now = Date.now();
 
-        // If data is in cache and fresh (less than 5 minutes old), skip fetching
-        if (cachedName && cachedAvatar !== null && cachedTime && (now - Number(cachedTime) < 5 * 60 * 1000)) {
+        // If the logged in user changed, clear cache and force re-fetch
+        if (cachedUserId !== user.id) {
+          sessionStorage.removeItem('panel_user_name');
+          sessionStorage.removeItem('panel_avatar_url');
+          sessionStorage.removeItem('panel_profile_id');
+          sessionStorage.removeItem('panel_profile_timestamp');
+        } else if (cachedName && cachedAvatar !== null && cachedTime && (now - Number(cachedTime) < 5 * 60 * 1000)) {
           return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        const user = session?.user;
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id, full_name, avatar_url')
-            .eq('auth_id', user.id)
-            .single();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .eq('auth_id', user.id)
+          .single();
 
-          const name = profile?.full_name || user.email || 'Użytkownik';
-          setUserName(name);
-          sessionStorage.setItem('panel_user_name', name);
-          if (profile) {
-            sessionStorage.setItem('panel_profile_id', profile.id);
-          }
-
-          let avatarSignedUrl = '';
-          if (profile?.avatar_url) {
-            const { data: signedData, error } = await supabase.storage
-              .from('avatars')
-              .createSignedUrl(profile.avatar_url, 60 * 60); // 1 hour
-            if (!error && signedData) {
-              avatarSignedUrl = signedData.signedUrl;
-            }
-          }
-          
-          setAvatarUrl(avatarSignedUrl || null);
-          sessionStorage.setItem('panel_avatar_url', avatarSignedUrl);
-          sessionStorage.setItem('panel_profile_timestamp', String(now));
+        const name = profile?.full_name || user.email || 'Użytkownik';
+        setUserName(name);
+        sessionStorage.setItem('panel_user_name', name);
+        sessionStorage.setItem('panel_user_id_auth', user.id);
+        if (profile) {
+          sessionStorage.setItem('panel_profile_id', profile.id);
         }
+
+        let avatarSignedUrl = '';
+        if (profile?.avatar_url) {
+          const { data: signedData, error } = await supabase.storage
+            .from('avatars')
+            .createSignedUrl(profile.avatar_url, 60 * 60); // 1 hour
+          if (!error && signedData) {
+            avatarSignedUrl = signedData.signedUrl;
+          }
+        }
+        
+        setAvatarUrl(avatarSignedUrl || null);
+        sessionStorage.setItem('panel_avatar_url', avatarSignedUrl);
+        sessionStorage.setItem('panel_profile_timestamp', String(now));
       } catch (err) {
         console.error('Error fetching user profile in PanelLayout:', err);
       }
     }
     fetchUserProfile();
+
+    // Listen for auth state changes to clear/re-fetch profile data instantly
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchUserProfile();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {

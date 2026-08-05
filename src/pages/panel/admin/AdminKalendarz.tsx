@@ -19,6 +19,7 @@ interface Booking {
   id: string;
   scheduled_at: string;
   is_first_visit: boolean;
+  source?: string;
   profiles: {
     full_name: string;
   };
@@ -128,7 +129,7 @@ export const AdminKalendarz: React.FC = () => {
       setLoading(true);
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('id, scheduled_at, is_first_visit, profiles(full_name), visit_types(id, title), booking_statuses(id, label, name)')
+        .select('id, scheduled_at, is_first_visit, source, profiles(full_name), visit_types(id, title), booking_statuses(id, label, name)')
         .order('scheduled_at', { ascending: true });
 
       const { data: profilesData } = await supabase
@@ -421,6 +422,7 @@ export const AdminKalendarz: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Klient</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Usługa</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Źródło</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                   </tr>
                 </thead>
@@ -445,6 +447,25 @@ export const AdminKalendarz: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(booking.scheduled_at).toLocaleString('pl-PL')}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {booking.source === 'website' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
+                            Strona WWW
+                          </span>
+                        ) : booking.source === 'znany_lekarz' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                            ZnanyLekarz
+                          </span>
+                        ) : booking.source === 'wspieramy_mentalnie' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                            WspieramyM.
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-50 text-gray-600 border border-gray-200">
+                            Ręczna (Offline)
+                          </span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm transition duration-300 ${
                           booking.booking_statuses?.name === 'confirmed'
@@ -462,7 +483,7 @@ export const AdminKalendarz: React.FC = () => {
                   ))}
                   {filteredBookings.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                         Brak pasujących rezerwacji w kalendarzu.
                       </td>
                     </tr>
