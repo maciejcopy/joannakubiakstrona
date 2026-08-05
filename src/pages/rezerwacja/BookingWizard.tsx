@@ -80,6 +80,7 @@ export const BookingWizard: React.FC = () => {
       try {
         const cal = await getCalApi();
         cal("ui", {
+          theme: "light",
           styles: { branding: { brandColor: "#2F5C3A" } },
           hideEventTypeDetails: true,
           layout: "month_view"
@@ -292,12 +293,13 @@ export const BookingWizard: React.FC = () => {
                 <div className="lg:col-span-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm min-h-[500px]">
                   <h2 className="text-xl font-serif font-bold text-dark-green mb-4 px-2">Wybierz dogodny termin</h2>
                   <Cal
-                    calLink={`joanna-kubiak-0ojprl/${selectedVisitType?.cal_slug || 'konsultacja-indywidualna'}`}
+                    calLink={`joanna-kubiak-0ojprl/${selectedVisitType?.cal_slug || 'konsultacja-indywidualna'}?metadata[userId]=${profileId}&metadata[visitTypeId]=${selectedVisitType?.id}`}
                     style={{ width: "100%", height: "550px", overflow: "scroll" }}
                     config={{
                       name: fullName,
                       email: email,
                       phone: `${phonePrefix}${phoneNumber}`,
+                      theme: "light",
                       "metadata[userId]": profileId,
                       "metadata[visitTypeId]": selectedVisitType?.id
                     }}

@@ -39,24 +39,20 @@ export const PacjentDashboard: React.FC = () => {
   useEffect(() => {
     async function fetchBookings() {
       try {
-        let profileId = sessionStorage.getItem('panel_profile_id');
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (!user) return;
 
-        if (!profileId) {
-          const { data: { session } } = await supabase.auth.getSession();
-          const user = session?.user;
-          if (!user) return;
+        // Pobierz profil pacjenta
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('auth_id', user.id)
+          .single();
 
-          // Pobierz profil pacjenta
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('auth_id', user.id)
-            .single();
-
-          if (!profile) return;
-          profileId = profile.id;
-          sessionStorage.setItem('panel_profile_id', profile.id);
-        }
+        if (!profile) return;
+        const profileId = profile.id;
+        sessionStorage.setItem('panel_profile_id', profile.id);
 
         // Pobierz jego rezerwacje wraz z relacjami
         const { data, error } = await supabase
@@ -126,7 +122,11 @@ export const PacjentDashboard: React.FC = () => {
                   {upcomingBookings.map((booking) => (
                     <div key={booking.id} className="border border-[#C4DEBE]/40 rounded-2xl p-5 bg-[#F6FAF4]/20 hover:bg-[#F6FAF4]/50 transition duration-300">
                       <div className="flex justify-between items-start mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-[#2F5C3A] border border-green-200">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          booking.booking_statuses.name === 'cancelled'
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : 'bg-green-50 text-[#2F5C3A] border-green-200'
+                        }`}>
                           {booking.booking_statuses.label}
                         </span>
                         <span className="text-xs text-gray-500">
