@@ -89,10 +89,50 @@ export const BookingWizard: React.FC = () => {
         // Register booking successful listener
         cal("on", {
           action: "bookingSuccessfulV2",
-          callback: (e: { detail: { data: unknown } }) => {
+          callback: async (e: { detail: { data: any } }) => {
             console.log("Cal.com booking success event:", e.detail);
+            const bookingUid = e.detail?.data?.uid;
+
+            if (bookingUid) {
+              const loadingToast = toast.loading("Trwa przygotowywanie płatności...");
+              try {
+                const response = await fetch(
+                  "https://znlwhnyxvqxtvixkyrse.supabase.co/functions/v1/p24-create-transaction",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      ...(import.meta.env.VITE_SUPABASE_ANON_KEY
+                        ? {
+                            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+                            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                          }
+                        : {}),
+                    },
+                    body: JSON.stringify({ external_id: bookingUid }),
+                  }
+                );
+
+                toast.dismiss(loadingToast);
+
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data?.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                    return;
+                  }
+                } else {
+                  console.error("Błąd odpowiedzi p24-create-transaction:", response.status, await response.text());
+                }
+              } catch (err) {
+                toast.dismiss(loadingToast);
+                console.error("Błąd podczas wywołania p24-create-transaction:", err);
+              }
+            }
+
+            // Fallback: pokazanie obecnego ekranu kroku 3
             toast.success("Wizyta została pomyślnie zarezerwowana!");
-            setStep(3); // Go to success confirmation screen
+            setStep(3);
           }
         });
       } catch (err) {
