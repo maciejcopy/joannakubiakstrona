@@ -17,6 +17,8 @@ import { AdminKlienci } from './pages/panel/admin/AdminKlienci';
 import { AdminUstawienia } from './pages/panel/admin/AdminUstawienia';
 import { AuthGuard } from './components/AuthGuard';
 import { UserProfile } from './pages/UserProfile';
+import { RegulaminPage } from './pages/legal/RegulaminPage';
+import { PolitykaPrywatnosciPage } from './pages/legal/PolitykaPrywatnosciPage';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -67,6 +69,8 @@ function App() {
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
         <Route path="/rezerwacja" element={<BookingWizard />} />
+        <Route path="/regulamin" element={<RegulaminPage />} />
+        <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosciPage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route 
           path="/profil" 

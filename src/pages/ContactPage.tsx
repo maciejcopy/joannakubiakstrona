@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Phone, Mail, MapPin, Send, Wifi, ChevronRight } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, Wifi, ChevronRight, Building2 } from 'lucide-react';
+import { COMPANY_INFO } from '../config/companyInfo';
 
 const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -137,7 +138,7 @@ const ContactPage: React.FC = () => {
               <h2 className="text-xl font-bold text-dark-green mb-6">Dane kontaktowe</h2>
               <div className="space-y-5">
                 <a
-                  href="tel:+48729933833"
+                  href={`tel:${COMPANY_INFO.phone.replace(/\s+/g, '')}`}
                   className="flex items-center space-x-4 group"
                 >
                   <div className="bg-light-green p-3 rounded-full flex-shrink-0 group-hover:bg-pastel-blue/10 transition-colors">
@@ -145,12 +146,12 @@ const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Telefon</p>
-                    <p className="font-semibold text-dark-green group-hover:text-pastel-blue transition-colors">+48 729 933 833</p>
+                    <p className="font-semibold text-dark-green group-hover:text-pastel-blue transition-colors">{COMPANY_INFO.phone}</p>
                   </div>
                 </a>
 
                 <a
-                  href="mailto:kontakt@joannakubiakpsycholog.pl"
+                  href={`mailto:${COMPANY_INFO.email}`}
                   className="flex items-center space-x-4 group"
                 >
                   <div className="bg-light-green p-3 rounded-full flex-shrink-0 group-hover:bg-pastel-blue/10 transition-colors">
@@ -158,7 +159,7 @@ const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Email</p>
-                    <p className="font-semibold text-dark-green text-sm group-hover:text-pastel-blue transition-colors">kontakt@joannakubiakpsycholog.pl</p>
+                    <p className="font-semibold text-dark-green text-sm group-hover:text-pastel-blue transition-colors">{COMPANY_INFO.email}</p>
                   </div>
                 </a>
 
@@ -170,6 +171,38 @@ const ContactPage: React.FC = () => {
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Forma</p>
                     <p className="font-semibold text-dark-green">Stacjonarnie & Online</p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dane rejestrowe firmy */}
+            <div className="bg-white rounded-2xl p-8 shadow-soft">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="bg-light-green p-3 rounded-full flex-shrink-0">
+                  <Building2 className="w-5 h-5 text-dark-green" />
+                </div>
+                <h2 className="text-xl font-bold text-dark-green">Dane firmy</h2>
+              </div>
+              <div className="space-y-4 text-sm text-gray-600">
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Nazwa podmiotu</p>
+                  <p className="font-semibold text-dark-green">{COMPANY_INFO.companyName}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">NIP</p>
+                    <p className="font-semibold text-dark-green font-mono">{COMPANY_INFO.nip}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">REGON</p>
+                    <p className="font-semibold text-dark-green font-mono">{COMPANY_INFO.regon}</p>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Adres rejestrowy</p>
+                  <p className="text-gray-700">
+                    {COMPANY_INFO.address.street}, {COMPANY_INFO.address.postalCode} {COMPANY_INFO.address.city}
+                  </p>
                 </div>
               </div>
             </div>

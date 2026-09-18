@@ -341,7 +341,7 @@ export const BookingWizard: React.FC = () => {
                       phone: `${phonePrefix}${phoneNumber}`,
                       theme: "light",
                       "metadata[userId]": profileId,
-                      "metadata[visitTypeId]": selectedVisitType?.id
+                      "metadata[visitTypeId]": selectedVisitType?.id || ""
                     }}
                   />
                   <div className="mt-4 px-2">
@@ -385,12 +385,37 @@ export const BookingWizard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Informacja o Stripe / płatnościach */}
+                  {/* Informacja o płatnościach online */}
                   <div className="bg-[#F6FAF4] rounded-3xl p-6 border border-[#C4DEBE]/35 text-sm text-gray-600 space-y-2">
                     <div className="flex gap-2 items-start">
                       <span className="p-1 bg-[#C4DEBE]/40 text-[#2F5C3A] rounded-lg mt-0.5">💡</span>
-                      <p>Wizytę można zarezerwować od razu. Płatność za sesję odbędzie się na miejscu w gabinecie lub przelewem.</p>
+                      <p>Po wyborze terminu nastąpi automatyczne przekierowanie do bezpiecznej płatności online realizowanej przez <strong>Przelewy24</strong>.</p>
                     </div>
+                  </div>
+
+                  {/* Klauzula prawna akceptacji regulaminu i polityki (wymóg Przelewy24) */}
+                  <div className="p-4 bg-gray-50/90 rounded-2xl border border-gray-200 text-xs text-gray-600 leading-relaxed shadow-2xs">
+                    <p>
+                      Dokonując rezerwacji, akceptujesz nasz{' '}
+                      <Link 
+                        to="/regulamin" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
+                      >
+                        Regulamin
+                      </Link>{' '}
+                      oraz{' '}
+                      <Link 
+                        to="/polityka-prywatnosci" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
+                      >
+                        Politykę Prywatności
+                      </Link>
+                      . Płatności online obsługuje serwis <strong>Przelewy24</strong> (PayPro S.A.).
+                    </p>
                   </div>
                 </div>
               </div>
