@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { pacjentSidebarItems } from '../../../config/sidebarConfig';
+import { DatePicker } from '../../../components/DatePicker';
 
 export const PacjentProfil: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -9,21 +10,27 @@ export const PacjentProfil: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [profileId, setProfileId] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('user');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   // Pola formularza
   const [fullName, setFullName] = useState('');
   const [phonePrefix, setPhonePrefix] = useState('+48');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [add1, setAdd1] = useState('');
-  const [add2, setAdd2] = useState('');
-  const [postCode, setPostCode] = useState('');
-  const [city, setCity] = useState('');
-  const [county, setCounty] = useState('');
-  const [country, setCountry] = useState('Polska');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const calculateAge = (birthDateStr: string): number => {
+    if (!birthDateStr) return 0;
+    const today = new Date();
+    const birthDate = new Date(birthDateStr);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const loadSignedAvatar = async (path: string) => {
     try {
@@ -61,13 +68,7 @@ export const PacjentProfil: React.FC = () => {
           setFullName(data.full_name || '');
           setPhonePrefix(data.phone_prefix || '+48');
           setPhoneNumber(data.phone_number || '');
-          setAdd1(data.add1 || '');
-          setAdd2(data.add2 || '');
-          setPostCode(data.post_code || '');
-          setCity(data.city || '');
-          setCounty(data.county || '');
-          setCountry(data.country || 'Polska');
-          setRole(data.role || 'user');
+          setDateOfBirth(data.date_of_birth || '');
           
           if (data.avatar_url) {
             await loadSignedAvatar(data.avatar_url);
@@ -137,6 +138,12 @@ export const PacjentProfil: React.FC = () => {
     setSuccessMsg(null);
     setErrorMsg(null);
 
+    if (dateOfBirth && calculateAge(dateOfBirth) < 18) {
+      setErrorMsg('Musisz mieć ukończone 18 lat.');
+      setSaving(false);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -144,12 +151,7 @@ export const PacjentProfil: React.FC = () => {
           full_name: fullName,
           phone_prefix: phonePrefix,
           phone_number: phoneNumber,
-          add1,
-          add2,
-          post_code: postCode,
-          city,
-          county,
-          country
+          date_of_birth: dateOfBirth || null
         })
         .eq('id', profileId);
 
@@ -246,7 +248,6 @@ export const PacjentProfil: React.FC = () => {
                 />
                 <input
                   type="tel"
-                  required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
@@ -255,68 +256,17 @@ export const PacjentProfil: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Kraj</label>
-              <input
-                type="text"
-                required
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Ulica, numer domu i mieszkania (Adres 1)</label>
-              <input
-                type="text"
-                required
-                value={add1}
-                onChange={(e) => setAdd1(e.target.value)}
-                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
-                placeholder="np. Jasna 12 m. 4"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Dodatkowe dane adresowe (Adres 2 - opcjonalnie)</label>
-              <input
-                type="text"
-                value={add2}
-                onChange={(e) => setAdd2(e.target.value)}
-                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Kod pocztowy</label>
-              <input
-                type="text"
-                required
-                value={postCode}
-                onChange={(e) => setPostCode(e.target.value)}
-                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
-                placeholder="00-000"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Miasto</label>
-              <input
-                type="text"
-                required
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Województwo / Powiat (opcjonalnie)</label>
-              <input
-                type="text"
-                value={county}
-                onChange={(e) => setCounty(e.target.value)}
-                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
+              <label className="block text-sm font-medium text-gray-700">Data urodzenia</label>
+              <DatePicker
+                value={dateOfBirth}
+                onChange={setDateOfBirth}
+                maxDate={(() => {
+                  const d = new Date();
+                  d.setFullYear(d.getFullYear() - 18);
+                  return d.toISOString().split('T')[0];
+                })()}
+                placeholder="Wybierz datę urodzenia..."
+                className="mt-1"
               />
             </div>
           </div>

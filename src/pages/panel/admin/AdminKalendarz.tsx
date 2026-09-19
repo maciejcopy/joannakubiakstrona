@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
+import { DatePicker } from '../../../components/DatePicker';
+import { CustomSelect } from '../../../components/CustomSelect';
 
 interface ClientProfile {
   id: string;
@@ -62,9 +64,7 @@ export const AdminKalendarz: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [phonePrefix, setPhonePrefix] = useState('+48');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [add1, setAdd1] = useState('');
-  const [city, setCity] = useState('');
-  const [postCode, setPostCode] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   
   // Szczegóły rezerwacji
   const [selectedVisitTypeId, setSelectedVisitTypeId] = useState('');
@@ -181,9 +181,7 @@ export const AdminKalendarz: React.FC = () => {
             full_name: fullName,
             phone_prefix: phonePrefix,
             phone_number: phoneNumber,
-            add1,
-            city,
-            post_code: postCode,
+            date_of_birth: dateOfBirth || null,
             role: 'client'
           })
           .select()
@@ -235,9 +233,7 @@ export const AdminKalendarz: React.FC = () => {
       // Reset formularza
       setFullName('');
       setPhoneNumber('');
-      setAdd1('');
-      setCity('');
-      setPostCode('');
+      setDateOfBirth('');
       setBookingDate('');
       setBookingTime('');
       
@@ -326,67 +322,60 @@ export const AdminKalendarz: React.FC = () => {
           <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Filtruj rezerwacje</h5>
           <div className="flex flex-wrap gap-4 items-end">
             {/* Status */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="flex-1 min-w-[170px]">
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Status</label>
-              <select
+              <CustomSelect
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
-              >
-                <option value="">Wszystkie statusy</option>
-                {statuses.map(s => (
-                  <option key={s.id} value={s.id}>{s.label}</option>
-                ))}
-              </select>
+                onChange={setFilterStatus}
+                options={[{ id: '', label: 'Wszystkie statusy' }, ...statuses]}
+                placeholder="Wszystkie statusy"
+              />
             </div>
 
             {/* Typ usługi */}
             <div className="flex-1 min-w-[200px]">
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Typ usługi</label>
-              <select
+              <CustomSelect
                 value={filterVisitType}
-                onChange={(e) => setFilterVisitType(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
-              >
-                <option value="">Wszystkie usługi</option>
-                {visitTypes.map(vt => (
-                  <option key={vt.id} value={vt.id}>{vt.title}</option>
-                ))}
-              </select>
+                onChange={setFilterVisitType}
+                options={[{ id: '', label: 'Wszystkie usługi' }, ...visitTypes.map(vt => ({ id: vt.id, label: vt.title }))]}
+                placeholder="Wszystkie usługi"
+              />
             </div>
 
             {/* Zakres dat */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="flex-1 min-w-[170px]">
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Termin wizyty</label>
-              <select
+              <CustomSelect
                 value={filterDateRange}
-                onChange={(e) => {
-                  setFilterDateRange(e.target.value);
-                  if (e.target.value !== 'custom') {
+                onChange={(val) => {
+                  setFilterDateRange(val);
+                  if (val !== 'custom') {
                     setFilterCustomDate('');
                   }
                 }}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
-              >
-                <option value="">Wszystkie terminy</option>
-                <option value="today">Dzisiaj</option>
-                <option value="last-3-days">Ostatnie 3 dni</option>
-                <option value="last-week">Ostatni tydzień</option>
-                <option value="next-3-days">Nadchodzące 3 dni</option>
-                <option value="next-week">Nadchodzący tydzień</option>
-                <option value="custom">Wybrana data...</option>
-              </select>
+                options={[
+                  { id: '', label: 'Wszystkie terminy' },
+                  { id: 'today', label: 'Dzisiaj' },
+                  { id: 'last-3-days', label: 'Ostatnie 3 dni' },
+                  { id: 'last-week', label: 'Ostatni tydzień' },
+                  { id: 'next-3-days', label: 'Nadchodzące 3 dni' },
+                  { id: 'next-week', label: 'Nadchodzący tydzień' },
+                  { id: 'next-month', label: 'Nadchodzący miesiąc' },
+                  { id: 'custom', label: 'Wybrana data...' },
+                ]}
+                placeholder="Wszystkie terminy"
+              />
             </div>
 
             {/* Wybrana data (pokazuje się tylko przy 'custom') */}
             {filterDateRange === 'custom' && (
-              <div className="flex-1 min-w-[150px]">
+              <div className="flex-1 min-w-[170px]">
                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Wybierz datę</label>
-                <input
-                  type="date"
+                <DatePicker
                   value={filterCustomDate}
-                  onChange={(e) => setFilterCustomDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A]"
+                  onChange={setFilterCustomDate}
+                  placeholder="Wybierz datę..."
                 />
               </div>
             )}
@@ -562,119 +551,86 @@ export const AdminKalendarz: React.FC = () => {
               {/* Formularz klienta */}
               {!isNewClient ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Wybierz pacjenta</label>
-                  <select
-                    required={!isNewClient}
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Wybierz pacjenta</label>
+                  <CustomSelect
                     value={selectedClientId}
-                    onChange={(e) => setSelectedClientId(e.target.value)}
-                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl"
-                  >
-                    <option value="">-- Wybierz z listy --</option>
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>{c.full_name}</option>
-                    ))}
-                  </select>
+                    onChange={setSelectedClientId}
+                    options={clients.map(c => ({ id: c.id, label: c.full_name }))}
+                    placeholder="-- Wybierz pacjenta z listy --"
+                  />
                 </div>
               ) : (
-                <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="space-y-3 p-4 bg-[#F6FAF4]/60 rounded-2xl border border-[#C4DEBE]/35">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600">Imię i Nazwisko</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Imię i Nazwisko</label>
                     <input
                       type="text"
                       required={isNewClient}
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="block w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#2F5C3A] focus:ring-2 focus:ring-[#2F5C3A]/20 focus:outline-none transition-all shadow-2xs"
+                      placeholder="np. Jan Kowalski"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600">Numer telefonu</label>
-                    <div className="flex gap-2 mt-1">
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Numer telefonu</label>
+                    <div className="flex gap-2">
                       <input
                         type="text"
                         value={phonePrefix}
                         onChange={(e) => setPhonePrefix(e.target.value)}
-                        className="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center text-sm"
+                        className="w-16 px-2 py-2.5 bg-white border border-gray-200 rounded-xl text-center text-sm focus:border-[#2F5C3A] focus:ring-2 focus:ring-[#2F5C3A]/20 focus:outline-none shadow-2xs"
                       />
                       <input
                         type="tel"
                         required={isNewClient}
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        className="flex-1 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#2F5C3A] focus:ring-2 focus:ring-[#2F5C3A]/20 focus:outline-none transition-all shadow-2xs"
+                        placeholder="600 000 000"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600">Adres (Ulica, nr)</label>
-                    <input
-                      type="text"
-                      required={isNewClient}
-                      value={add1}
-                      onChange={(e) => setAdd1(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Data urodzenia (opcjonalnie)</label>
+                    <DatePicker
+                      value={dateOfBirth}
+                      onChange={setDateOfBirth}
+                      maxDate={new Date().toISOString().split('T')[0]}
+                      placeholder="Wybierz datę urodzenia..."
                     />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="block text-xs font-semibold text-gray-600">Kod pocztowy</label>
-                      <input
-                        type="text"
-                        required={isNewClient}
-                        value={postCode}
-                        onChange={(e) => setPostCode(e.target.value)}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      />
-                    </div>
-                    <div className="flex-[2]">
-                      <label className="block text-xs font-semibold text-gray-600">Miasto</label>
-                      <input
-                        type="text"
-                        required={isNewClient}
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      />
-                    </div>
                   </div>
                 </div>
               )}
 
               {/* Szczegóły wizyty */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Wybierz usługę</label>
-                <select
-                  required
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Wybierz usługę</label>
+                <CustomSelect
                   value={selectedVisitTypeId}
-                  onChange={(e) => setSelectedVisitTypeId(e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl"
-                >
-                  <option value="">-- Wybierz usługę --</option>
-                  {visitTypes.map(v => (
-                    <option key={v.id} value={v.id}>{v.title} ({v.price} zł)</option>
-                  ))}
-                </select>
+                  onChange={setSelectedVisitTypeId}
+                  options={visitTypes.map(v => ({ id: v.id, label: `${v.title} (${v.price} zł)` }))}
+                  placeholder="-- Wybierz usługę --"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Data wizyty</label>
-                  <input
-                    type="date"
-                    required
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Data wizyty</label>
+                  <DatePicker
                     value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl"
+                    onChange={setBookingDate}
+                    placeholder="Wybierz termin..."
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Godzina wizyty</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Godzina wizyty</label>
                   <input
                     type="time"
                     required
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
-                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl"
+                    className="block w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#2F5C3A] focus:ring-2 focus:ring-[#2F5C3A]/20 focus:outline-none transition-all shadow-2xs"
                   />
                 </div>
               </div>

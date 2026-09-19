@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { DatePicker } from '../../components/DatePicker';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const Register: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [phonePrefix, setPhonePrefix] = useState('+48');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -15,10 +22,40 @@ export const Register: React.FC = () => {
   const location = useLocation();
   const returnTo = (location.state as any)?.returnTo;
 
+  const maxBirthDate = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split('T')[0];
+  })();
+
+  const calculateAge = (birthDateStr: string): number => {
+    if (!birthDateStr) return 0;
+    const today = new Date();
+    const birthDate = new Date(birthDateStr);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
+
+    if (!dateOfBirth) {
+      setErrorMsg('Podanie daty urodzenia jest wymagane.');
+      setLoading(false);
+      return;
+    }
+
+    if (calculateAge(dateOfBirth) < 18) {
+      setErrorMsg('Rejestracja w serwisie jest dostępna wyłącznie dla osób pełnoletnich (ukończone 18 lat).');
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setErrorMsg('Hasła nie pasują do siebie.');
@@ -33,6 +70,9 @@ export const Register: React.FC = () => {
         options: {
           data: {
             full_name: fullName,
+            phone_prefix: phonePrefix,
+            phone_number: phoneNumber,
+            date_of_birth: dateOfBirth,
           },
         },
       });
@@ -125,6 +165,49 @@ export const Register: React.FC = () => {
           </div>
 
           <div>
+            <label htmlFor="date-of-birth" className="block text-sm font-medium text-gray-700">
+              Data urodzenia <span className="text-red-500">* (wymagane ukończone 18 lat)</span>
+            </label>
+            <DatePicker
+              id="date-of-birth"
+              name="dateOfBirth"
+              required
+              value={dateOfBirth}
+              onChange={setDateOfBirth}
+              maxDate={maxBirthDate}
+              placeholder="Wybierz datę urodzenia..."
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone-number" className="block text-sm font-medium text-gray-700">
+              Numer telefonu (opcjonalnie)
+            </label>
+            <div className="mt-1 flex gap-2">
+              <select
+                value={phonePrefix}
+                onChange={(e) => setPhonePrefix(e.target.value)}
+                className="px-3 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm bg-white"
+              >
+                <option value="+48">+48 (PL)</option>
+                <option value="+44">+44 (UK)</option>
+                <option value="+49">+49 (DE)</option>
+                <option value="+1">+1 (US)</option>
+              </select>
+              <input
+                id="phone-number"
+                name="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
+                placeholder="600 000 000"
+              />
+            </div>
+          </div>
+
+          <div>
             <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
               Adres e-mail
             </label>
@@ -132,7 +215,7 @@ export const Register: React.FC = () => {
               id="email-address"
               name="email"
               type="email"
-              autocomplete="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -145,32 +228,54 @@ export const Register: React.FC = () => {
             <label htmlFor="password-field" className="block text-sm font-medium text-gray-700">
               Hasło
             </label>
-            <input
-              id="password-field"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
-              placeholder="min. 6 znaków"
-            />
+            <div className="relative mt-1">
+              <input
+                id="password-field"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full px-4 py-3 pr-11 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
+                placeholder="min. 6 znaków"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1 transition"
+                title={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <div>
             <label htmlFor="confirm-password-field" className="block text-sm font-medium text-gray-700">
               Potwierdź hasło
             </label>
-            <input
-              id="confirm-password-field"
-              name="confirmPassword"
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
-              placeholder="••••••••"
-            />
+            <div className="relative mt-1">
+              <input
+                id="confirm-password-field"
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="block w-full px-4 py-3 pr-11 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-dark-green focus:border-dark-green sm:text-sm transition duration-300"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1 transition"
+                title={showConfirmPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                aria-label={showConfirmPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <div className="pt-2">

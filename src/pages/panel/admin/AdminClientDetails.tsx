@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
 import { adminSidebarItems } from '../../../config/sidebarConfig';
+import { DatePicker } from '../../../components/DatePicker';
 
 interface ProfileDetails {
   id: string;
@@ -11,12 +12,7 @@ interface ProfileDetails {
   email: string | null;
   phone_prefix: string;
   phone_number: string;
-  add1: string | null;
-  add2: string | null;
-  post_code: string | null;
-  city: string | null;
-  county: string | null;
-  country: string;
+  date_of_birth: string | null;
   created_at: string;
 }
 
@@ -50,13 +46,20 @@ export const AdminClientDetails: React.FC = () => {
     email: '',
     phone_prefix: '+48',
     phone_number: '',
-    add1: '',
-    add2: '',
-    post_code: '',
-    city: '',
-    county: '',
-    country: 'Polska'
+    date_of_birth: '',
   });
+
+  const calculateAge = (birthDateStr: string | null): number | null => {
+    if (!birthDateStr) return null;
+    const today = new Date();
+    const birthDate = new Date(birthDateStr);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   useEffect(() => {
     async function fetchClientDetails() {
@@ -78,12 +81,7 @@ export const AdminClientDetails: React.FC = () => {
             email: profileData.email || '',
             phone_prefix: profileData.phone_prefix || '+48',
             phone_number: profileData.phone_number || '',
-            add1: profileData.add1 || '',
-            add2: profileData.add2 || '',
-            post_code: profileData.post_code || '',
-            city: profileData.city || '',
-            county: profileData.county || '',
-            country: profileData.country || 'Polska'
+            date_of_birth: profileData.date_of_birth || '',
           });
         }
 
@@ -115,12 +113,7 @@ export const AdminClientDetails: React.FC = () => {
           email: formData.email || null,
           phone_prefix: formData.phone_prefix,
           phone_number: formData.phone_number,
-          add1: formData.add1 || null,
-          add2: formData.add2 || null,
-          post_code: formData.post_code || null,
-          city: formData.city || null,
-          county: formData.county || null,
-          country: formData.country
+          date_of_birth: formData.date_of_birth || null,
         })
         .eq('id', id);
 
@@ -222,21 +215,26 @@ export const AdminClientDetails: React.FC = () => {
               <div className="space-y-3 text-sm text-gray-700">
                 <div>
                   <span className="text-xs text-gray-400 block uppercase">Telefon</span>
-                  <span className="font-semibold">{profile.phone_prefix} {profile.phone_number}</span>
+                  <span className="font-semibold">{profile.phone_prefix} {profile.phone_number || '-'}</span>
                 </div>
                 <div>
                   <span className="text-xs text-gray-400 block uppercase">E-mail</span>
                   <span>{profile.email || <span className="text-gray-400 italic">Brak (konto offline)</span>}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400 block uppercase">Adres zamieszkania</span>
-                  <p className="font-medium">{profile.add1 || '-'}</p>
-                  {profile.add2 && <p className="text-gray-500">{profile.add2}</p>}
-                  {(profile.post_code || profile.city) && (
-                    <p className="font-medium">{profile.post_code} {profile.city}</p>
-                  )}
-                  {profile.county && <p className="text-xs text-gray-500">Powiat/Województwo: {profile.county}</p>}
-                  <p className="text-xs text-gray-500">Kraj: {profile.country}</p>
+                  <span className="text-xs text-gray-400 block uppercase">Data urodzenia (Wiek)</span>
+                  <p className="font-medium">
+                    {profile.date_of_birth ? (
+                      <>
+                        {new Date(profile.date_of_birth).toLocaleDateString('pl-PL')}{' '}
+                        <span className="text-gray-500 font-normal">
+                          ({calculateAge(profile.date_of_birth)} lat)
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-gray-400 italic">Nie podano</span>
+                    )}
+                  </p>
                 </div>
                 <div className="pt-2">
                   <span className="text-xs text-gray-400 block uppercase">Pacjent od</span>
@@ -293,63 +291,12 @@ export const AdminClientDetails: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Ulica i nr domu</label>
-                  <input
-                    type="text"
-                    value={formData.add1}
-                    onChange={(e) => setFormData({ ...formData, add1: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Nr lokalu / dod. adres</label>
-                  <input
-                    type="text"
-                    value={formData.add2}
-                    onChange={(e) => setFormData({ ...formData, add2: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Kod pocztowy</label>
-                    <input
-                      type="text"
-                      value={formData.post_code}
-                      onChange={(e) => setFormData({ ...formData, post_code: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Miasto</label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Województwo / Powiat</label>
-                  <input
-                    type="text"
-                    value={formData.county}
-                    onChange={(e) => setFormData({ ...formData, county: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Kraj</label>
-                  <input
-                    type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] focus:outline-none"
+                  <label className="text-xs text-gray-500 block uppercase mb-1 font-semibold">Data urodzenia</label>
+                  <DatePicker
+                    value={formData.date_of_birth}
+                    onChange={(val) => setFormData({ ...formData, date_of_birth: val })}
+                    maxDate={new Date().toISOString().split('T')[0]}
+                    placeholder="Wybierz datę urodzenia..."
                   />
                 </div>
               </div>
@@ -372,12 +319,7 @@ export const AdminClientDetails: React.FC = () => {
                         email: profile.email || '',
                         phone_prefix: profile.phone_prefix || '+48',
                         phone_number: profile.phone_number || '',
-                        add1: profile.add1 || '',
-                        add2: profile.add2 || '',
-                        post_code: profile.post_code || '',
-                        city: profile.city || '',
-                        county: profile.county || '',
-                        country: profile.country || 'Polska'
+                        date_of_birth: profile.date_of_birth || '',
                       });
                     }
                   }}

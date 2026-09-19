@@ -5,7 +5,51 @@ import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
 import { adminSidebarItems } from '../../../config/sidebarConfig';
-import { AlertCircle, CheckCircle2, CreditCard } from 'lucide-react';
+import { AlertCircle, CheckCircle2, CreditCard, MapPin, SlidersHorizontal } from 'lucide-react';
+import { CustomSelect, SelectOption } from '../../../components/CustomSelect';
+
+const getBookingStatusBadge = (item: SelectOption) => {
+  switch (item.name) {
+    case 'confirmed':
+      return 'bg-emerald-500';
+    case 'completed':
+      return 'bg-blue-500';
+    case 'cancelled':
+      return 'bg-rose-500';
+    case 'rescheduled':
+      return 'bg-amber-500';
+    case 'pending':
+      return 'bg-yellow-500';
+    default:
+      return 'bg-gray-400';
+  }
+};
+
+const getPaymentStatusBadge = (item: SelectOption) => {
+  switch (item.name) {
+    case 'paid':
+      return 'bg-emerald-500';
+    case 'unpaid':
+      return 'bg-amber-500';
+    case 'refund_pending':
+      return 'bg-orange-500';
+    case 'refunded':
+      return 'bg-purple-500';
+    default:
+      return 'bg-gray-400';
+  }
+};
+
+const getLocationBadge = (item: SelectOption) => {
+  switch (item.name) {
+    case 'office':
+      return 'bg-[#2F5C3A]';
+    case 'online':
+      return 'bg-[#3A8BA8]';
+    default:
+      return 'bg-teal-500';
+  }
+};
 
 interface BookingDetails {
   id: string;
@@ -307,56 +351,59 @@ export const AdminBookingDetails: React.FC = () => {
         </div>
 
         {/* Prawa kolumna: Aktualizacja statusów */}
-        <div className="bg-gray-50 border border-gray-100 p-6 rounded-2xl h-fit">
-          <h3 className="text-md font-serif font-bold text-[#2F5C3A] mb-4">Zarządzanie wizytą</h3>
+        <div className="bg-white border border-[#C4DEBE]/40 p-6 rounded-2xl h-fit shadow-soft">
+          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
+            <SlidersHorizontal className="w-4 h-4 text-[#2F5C3A]" />
+            <h3 className="text-md font-serif font-bold text-[#2F5C3A]">Zarządzanie wizytą</h3>
+          </div>
           
           <form onSubmit={handleUpdate} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase">Status rezerwacji</label>
-              <select
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                Status rezerwacji
+              </label>
+              <CustomSelect
                 value={selectedStatusId}
-                onChange={(e) => setSelectedStatusId(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl text-sm"
-              >
-                {statuses.map(s => (
-                  <option key={s.id} value={s.id}>{s.label}</option>
-                ))}
-              </select>
+                onChange={setSelectedStatusId}
+                options={statuses}
+                placeholder="Wybierz status..."
+                getBadgeColor={getBookingStatusBadge}
+              />
             </div>
 
             {isSelectedStatusCancelled && (
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">Powód odwołania</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                  Powód odwołania
+                </label>
                 <textarea
                   required
                   value={cancellationReason}
                   onChange={(e) => setCancellationReason(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl text-sm h-20"
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#2F5C3A] focus:ring-2 focus:ring-[#2F5C3A]/20 focus:outline-none transition-all duration-200 h-20 resize-none shadow-2xs"
                   placeholder="Podaj powód anulowania wizyty..."
                 />
               </div>
             )}
 
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase flex items-center gap-1.5 mb-1">
-                <CreditCard className="w-3.5 h-3.5 text-gray-500" />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-gray-400" />
                 Status płatności
               </label>
-              <select
+              <CustomSelect
                 value={selectedPaymentStatusId}
-                onChange={(e) => setSelectedPaymentStatusId(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl text-sm"
-              >
-                {paymentStatuses.map(p => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
-                ))}
-              </select>
+                onChange={setSelectedPaymentStatusId}
+                options={paymentStatuses}
+                placeholder="Wybierz status płatności..."
+                getBadgeColor={getPaymentStatusBadge}
+              />
               {paymentStatuses.find(p => p.id === selectedPaymentStatusId)?.name === 'refund_pending' && (
                 <button
                   type="button"
                   onClick={handleMarkAsRefunded}
                   disabled={markingRefunded}
-                  className="mt-2 w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                  className="mt-2.5 w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-2xs"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" />
                   Szybka akcja: Oznacz jako zwrócone
@@ -365,29 +412,30 @@ export const AdminBookingDetails: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase">Lokalizacja</label>
-              <select
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                Lokalizacja
+              </label>
+              <CustomSelect
                 value={selectedLocationId}
-                onChange={(e) => setSelectedLocationId(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl text-sm"
-              >
-                {locations.map(l => (
-                  <option key={l.id} value={l.id}>{l.label}</option>
-                ))}
-              </select>
+                onChange={setSelectedLocationId}
+                options={locations}
+                placeholder="Wybierz lokalizację..."
+                getBadgeColor={getLocationBadge}
+              />
             </div>
 
             <div className="pt-4 space-y-2">
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full py-2.5 bg-[#2F5C3A] hover:bg-[#2F5C3A]/90 text-white rounded-xl text-xs font-semibold transition"
+                className="w-full py-2.5 bg-[#2F5C3A] hover:bg-[#2F5C3A]/90 active:scale-[0.99] text-white rounded-xl text-xs font-semibold transition duration-200 shadow-soft disabled:opacity-50"
               >
                 {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
               </button>
               <Link
                 to="/panel/admin/dashboard"
-                className="w-full py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold flex items-center justify-center transition"
+                className="w-full py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold flex items-center justify-center transition duration-200"
               >
                 Powrót
               </Link>
