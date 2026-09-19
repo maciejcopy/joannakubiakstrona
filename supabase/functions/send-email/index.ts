@@ -28,7 +28,12 @@ serve(async (req) => {
 
     // Get environment variables
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    const TO_EMAIL = Deno.env.get('TO_EMAIL') || 'joannakubiakpsycholog@gmail.com'
+    const TO_EMAIL = Deno.env.get('TO_EMAIL')
+    const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'Joanna Kubiak - Strona <kontakt@joannakubiakpsycholog.pl>'
+
+    const recipients = TO_EMAIL
+      ? TO_EMAIL.split(',').map((e: string) => e.trim())
+      : ['maciejkubiakcopy@gmail.com', 'joannakubiakpsycholog@gmail.com']
 
     // TYMCZASOWO: Wklej tutaj swój klucz API z Resend (zaczyna się od "re_")
     const RESEND_API_KEY_TEMP = 'WKLEJ_TUTAJ_SWOJ_PRAWDZIWY_KLUCZ_API'
@@ -90,8 +95,8 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Joanna Kubiak - Strona internetowa <onboarding@resend.dev>',
-        to: [TO_EMAIL],
+        from: FROM_EMAIL,
+        to: recipients,
         reply_to: email,
         subject: `Nowa wiadomość od ${name}`,
         html: emailContent,
