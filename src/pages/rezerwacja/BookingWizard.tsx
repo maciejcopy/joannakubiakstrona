@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -30,6 +30,19 @@ export const BookingWizard: React.FC = () => {
   const [phonePrefix, setPhonePrefix] = useState('+48');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+
+  // Refs zapobiegające nieświeżemu domknięciu w Cal.com embed API listenerze
+  const profileIdRef = useRef('');
+  const selectedVisitTypeRef = useRef<VisitType | null>(null);
+  const isSubmittingPaymentRef = useRef(false);
+
+  useEffect(() => {
+    profileIdRef.current = profileId;
+  }, [profileId]);
+
+  useEffect(() => {
+    selectedVisitTypeRef.current = selectedVisitType;
+  }, [selectedVisitType]);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,11 +103,15 @@ export const BookingWizard: React.FC = () => {
         cal("on", {
           action: "bookingSuccessfulV2",
           callback: async (e: { detail: { data: any } }) => {
+            if (isSubmittingPaymentRef.current) return;
+            isSubmittingPaymentRef.current = true;
+
             console.log("Cal.com booking success event:", e.detail);
             const bookingUid = e.detail?.data?.uid;
 
             if (bookingUid) {
-              const loadingToast = toast.loading("Trwa przygotowywanie płatności...");
+              toast.dismiss();
+              const loadingToast = toast.loading("Trwa przygotowywanie płatności Przelewy24...");
               try {
                 const response = await fetch(
                   "https://znlwhnyxvqxtvixkyrse.supabase.co/functions/v1/p24-create-transaction",
@@ -109,7 +126,13 @@ export const BookingWizard: React.FC = () => {
                           }
                         : {}),
                     },
-                    body: JSON.stringify({ external_id: bookingUid }),
+                    body: JSON.stringify({
+                      external_id: bookingUid,
+                      profile_id: profileIdRef.current || undefined,
+                      visit_type_id: selectedVisitTypeRef.current?.id || undefined,
+                      scheduled_at: e.detail?.data?.date || e.detail?.data?.startTime || new Date().toISOString(),
+                      return_url: `${window.location.origin}/panel/pacjent/dashboard`
+                    }),
                   }
                 );
 
@@ -118,20 +141,22 @@ export const BookingWizard: React.FC = () => {
                 if (response.ok) {
                   const data = await response.json();
                   if (data?.redirectUrl) {
+                    toast.loading("Przekierowywanie do Przelewy24...");
                     window.location.href = data.redirectUrl;
                     return;
                   }
                 } else {
                   console.error("Błąd odpowiedzi p24-create-transaction:", response.status, await response.text());
+                  toast.error("Nie udało się rozpocząć transakcji Przelewy24. Wizytę możesz opłacić w panelu pacjenta.");
                 }
               } catch (err) {
                 toast.dismiss(loadingToast);
                 console.error("Błąd podczas wywołania p24-create-transaction:", err);
+                toast.error("Wystąpił błąd podczas łączenia z systemem płatności.");
               }
             }
 
-            // Fallback: pokazanie obecnego ekranu kroku 3
-            toast.success("Wizyta została pomyślnie zarezerwowana!");
+            // Pokazanie ekranu podsumowania tylko w przypadku braku przekierowania do płatności
             setStep(3);
           }
         });

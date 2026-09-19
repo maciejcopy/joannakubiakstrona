@@ -5,6 +5,7 @@ import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
 import { adminSidebarItems } from '../../../config/sidebarConfig';
+import { AlertCircle, CheckCircle2, CreditCard } from 'lucide-react';
 
 interface BookingDetails {
   id: string;
@@ -65,6 +66,7 @@ export const AdminBookingDetails: React.FC = () => {
   const [cancellationReason, setCancellationReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [markingRefunded, setMarkingRefunded] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -89,11 +91,18 @@ export const AdminBookingDetails: React.FC = () => {
           .single();
 
         if (bookingErr) throw bookingErr;
-        setBooking(bookingData as any);
-        setSelectedStatusId(bookingData.booking_statuses.id);
-        setSelectedPaymentStatusId(bookingData.payment_statuses.id);
-        setSelectedLocationId(bookingData.location_types.id);
-        setCancellationReason(bookingData.cancellation_reason || '');
+
+        const data = bookingData as any;
+        setBooking(data);
+
+        const statusId = data?.booking_statuses?.id || (Array.isArray(data?.booking_statuses) ? data.booking_statuses[0]?.id : '') || '';
+        const paymentId = data?.payment_statuses?.id || (Array.isArray(data?.payment_statuses) ? data.payment_statuses[0]?.id : '') || '';
+        const locationId = data?.location_types?.id || (Array.isArray(data?.location_types) ? data.location_types[0]?.id : '') || '';
+
+        setSelectedStatusId(statusId);
+        setSelectedPaymentStatusId(paymentId);
+        setSelectedLocationId(locationId);
+        setCancellationReason(data?.cancellation_reason || '');
 
         // Pobierz słowniki
         const { data: statusList } = await supabase.from('booking_statuses').select('id, name, label');
@@ -150,6 +159,37 @@ export const AdminBookingDetails: React.FC = () => {
     }
   };
 
+  const handleMarkAsRefunded = async () => {
+    if (!booking) return;
+    const refundedStatus = paymentStatuses.find(p => p.name === 'refunded');
+    if (!refundedStatus) {
+      toast.error("Nie odnaleziono statusu 'refunded' w słowniku.");
+      return;
+    }
+
+    try {
+      setMarkingRefunded(true);
+      const { error } = await supabase
+        .from('bookings')
+        .update({ payment_status_id: refundedStatus.id })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      setSelectedPaymentStatusId(refundedStatus.id);
+      setBooking(prev => prev ? {
+        ...prev,
+        payment_statuses: refundedStatus
+      } : null);
+
+      toast.success('Płatność została oznaczona jako zwrócona!');
+    } catch (err: any) {
+      toast.error('Błąd podczas aktualizacji: ' + err.message);
+    } finally {
+      setMarkingRefunded(false);
+    }
+  };
+
   if (loading) {
     return (
       <PanelLayout title="Szczegóły rezerwacji" role="admin" sidebarItems={adminSidebarItems}>
@@ -178,6 +218,48 @@ export const AdminBookingDetails: React.FC = () => {
         
         {/* Lewa kolumna: Informacje o wizycie */}
         <div className="lg:col-span-2 space-y-6">
+          {booking.payment_statuses?.name === 'refund_pending' && (
+            <div className="p-5 bg-amber-50 border border-amber-300 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-amber-950 text-sm">Wizyta anulowana — oczekuje na zwrot środków</h4>
+                  <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                    Wizyta została odwołana przez pacjenta na min. 24h przed terminem. Wykonaj ręczny zwrot w panelu Przelewy24, a następnie kliknij przycisk obok, aby oznaczyć wizytę jako zwróconą.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleMarkAsRefunded}
+                disabled={markingRefunded}
+                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition whitespace-nowrap shadow-soft disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {markingRefunded ? 'Zapisywanie...' : 'Oznacz jako zwrócone'}
+              </button>
+            </div>
+          )}
+
+          {booking.payment_statuses?.name === 'refunded' && (
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl flex items-center gap-3 text-xs text-purple-900">
+              <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />
+              <span>Środki za tę wizytę zostały pomyślnie zwrócone pacjentowi.</span>
+            </div>
+          )}
+
+          {(booking.cancelled_at || booking.cancellation_reason) && (
+            <div className="p-4 bg-red-50/80 border border-red-200 rounded-2xl text-xs text-red-900 space-y-1">
+              <span className="font-bold block uppercase text-[10px] text-red-700">Szczegóły odwołania</span>
+              {booking.cancelled_at && (
+                <p>Data anulowania: {new Date(booking.cancelled_at).toLocaleString('pl-PL')}</p>
+              )}
+              {booking.cancellation_reason && (
+                <p>Powód: <em>{booking.cancellation_reason}</em></p>
+              )}
+            </div>
+          )}
+
           <div className="bg-[#F6FAF4]/30 border border-[#C4DEBE]/20 p-6 rounded-2xl">
             <h3 className="text-md font-serif font-bold text-[#2F5C3A] mb-4">Informacje o sesji</h3>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
@@ -256,7 +338,10 @@ export const AdminBookingDetails: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase">Status płatności</label>
+              <label className="text-xs font-semibold text-gray-600 uppercase flex items-center gap-1.5 mb-1">
+                <CreditCard className="w-3.5 h-3.5 text-gray-500" />
+                Status płatności
+              </label>
               <select
                 value={selectedPaymentStatusId}
                 onChange={(e) => setSelectedPaymentStatusId(e.target.value)}
@@ -266,6 +351,17 @@ export const AdminBookingDetails: React.FC = () => {
                   <option key={p.id} value={p.id}>{p.label}</option>
                 ))}
               </select>
+              {paymentStatuses.find(p => p.id === selectedPaymentStatusId)?.name === 'refund_pending' && (
+                <button
+                  type="button"
+                  onClick={handleMarkAsRefunded}
+                  disabled={markingRefunded}
+                  className="mt-2 w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" />
+                  Szybka akcja: Oznacz jako zwrócone
+                </button>
+              )}
             </div>
 
             <div>

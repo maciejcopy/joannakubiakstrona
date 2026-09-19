@@ -1,16 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7"
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+};
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -43,6 +42,15 @@ serve(async (req) => {
     const { data: officeLocation } = await supabase.from('location_types').select('id').eq('name', 'office').single();
 
     if (triggerEvent === 'BOOKING_CREATED') {
+      // 0. Zabezpieczenie przed duplikatami przy przekładaniu (reschedule)
+      if (payload.rescheduleUid) {
+        console.log("Ignoruję BOOKING_CREATED ponieważ dotyczy przełożenia (rescheduleUid:", payload.rescheduleUid, ")");
+        return new Response(JSON.stringify({ success: true, message: "Ignored reschedule event in BOOKING_CREATED" }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       // 1. Ustalenie klienta (profileId)
       let clientId = payload.metadata?.userId || payload.metadata?.clientId;
       const attendee = payload.attendees?.[0];
@@ -160,23 +168,50 @@ serve(async (req) => {
       console.log("Anulowano rezerwację w Supabase:", cancelledBooking);
 
     } else if (triggerEvent === 'BOOKING_RESCHEDULED') {
-      // Odbiór zmiany terminu
-      const { data: rescheduledBooking, error: rescheduleErr } = await supabase
+      // Odbiór zmiany terminu (reschedule)
+      const oldUid = payload.rescheduleUid || bookingUid;
+      const newUid = payload.uid || bookingUid;
+
+      console.log(`Obsługa BOOKING_RESCHEDULED: stary external_id=${oldUid}, nowy external_id=${newUid}, nowy startTime=${startTime}`);
+
+      // 1. Szukamy istniejącej rezerwacji po starym UID (lub nowym jako fallback)
+      let { data: existingBooking } = await supabase
         .from('bookings')
-        .update({
-          scheduled_at: startTime,
-          status_id: confirmedStatus?.id // Na wypadek gdyby status był inny
-        })
-        .eq('external_id', bookingUid)
-        .select()
+        .select('id, payment_status_id, external_id')
+        .eq('external_id', oldUid)
         .maybeSingle();
 
-      if (rescheduleErr) {
-        console.error("Błąd zmiany terminu rezerwacji:", rescheduleErr);
-        throw rescheduleErr;
+      if (!existingBooking && oldUid !== newUid) {
+        const { data: fallbackBooking } = await supabase
+          .from('bookings')
+          .select('id, payment_status_id, external_id')
+          .eq('external_id', newUid)
+          .maybeSingle();
+        existingBooking = fallbackBooking;
       }
 
-      console.log("Zmieniono termin rezerwacji w Supabase:", rescheduledBooking);
+      if (existingBooking) {
+        // 2. Aktualizujemy istniejący rekord - data i nowy external_id; payment_status_id pozostaje nienaruszony!
+        const { data: updatedBooking, error: updateErr } = await supabase
+          .from('bookings')
+          .update({
+            scheduled_at: startTime,
+            external_id: newUid,
+            status_id: confirmedStatus?.id
+          })
+          .eq('id', existingBooking.id)
+          .select()
+          .single();
+
+        if (updateErr) {
+          console.error("Błąd aktualizacji rezerwacji przy reschedule:", updateErr);
+          throw updateErr;
+        }
+
+        console.log("Pomyślnie zaktualizowano termin rezerwacji (zachowując status płatności):", updatedBooking);
+      } else {
+        console.warn(`Nie odnaleziono istniejącej rezerwacji o external_id ${oldUid} ani ${newUid}.`);
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -192,4 +227,4 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-})
+});

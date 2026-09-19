@@ -32,6 +32,11 @@ interface Booking {
     label: string;
     name: string;
   };
+  payment_statuses?: {
+    id: string;
+    label: string;
+    name: string;
+  };
 }
 
 export const AdminKalendarz: React.FC = () => {
@@ -129,7 +134,7 @@ export const AdminKalendarz: React.FC = () => {
       setLoading(true);
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('id, scheduled_at, is_first_visit, source, profiles(full_name), visit_types(id, title), booking_statuses(id, label, name)')
+        .select('id, scheduled_at, is_first_visit, source, profiles(full_name), visit_types(id, title), booking_statuses(id, label, name), payment_statuses(id, label, name)')
         .order('scheduled_at', { ascending: true });
 
       const { data: profilesData } = await supabase
@@ -424,6 +429,7 @@ export const AdminKalendarz: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Źródło</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Płatność</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
@@ -479,11 +485,30 @@ export const AdminKalendarz: React.FC = () => {
                           {booking.booking_statuses?.label}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {booking.payment_statuses ? (
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-2xs transition duration-300 ${
+                            booking.payment_statuses.name === 'refund_pending'
+                              ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/30 font-extrabold'
+                              : booking.payment_statuses.name === 'refunded'
+                              ? 'bg-purple-50 text-purple-700 border-purple-200'
+                              : booking.payment_statuses.name === 'paid_online'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : booking.payment_statuses.name === 'paid_on_site'
+                              ? 'bg-teal-50 text-teal-700 border-teal-200'
+                              : 'bg-gray-50 text-gray-600 border-gray-200'
+                          }`}>
+                            {booking.payment_statuses.label}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {filteredBookings.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Brak pasujących rezerwacji w kalendarzu.
                       </td>
                     </tr>
