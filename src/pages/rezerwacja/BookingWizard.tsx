@@ -431,27 +431,35 @@ export const BookingWizard: React.FC = () => {
 
                   {/* Klauzula prawna akceptacji regulaminu i polityki (wymóg Przelewy24) */}
                   <div className="p-4 bg-gray-50/90 rounded-2xl border border-gray-200 text-xs text-gray-600 leading-relaxed shadow-2xs">
-                    <p>
-                      Dokonując rezerwacji, akceptujesz nasz{' '}
-                      <Link 
-                        to="/regulamin" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
-                      >
-                        Regulamin
-                      </Link>{' '}
-                      oraz{' '}
-                      <Link 
-                        to="/polityka-prywatnosci" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
-                      >
-                        Politykę Prywatności
-                      </Link>
-                      . Płatności online obsługuje serwis <strong>Przelewy24</strong> (PayPro S.A.).
-                    </p>
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        defaultChecked
+                        required
+                        className="mt-0.5 rounded border-gray-300 text-dark-green focus:ring-dark-green h-4 w-4 shrink-0" 
+                      />
+                      <span>
+                        Akceptuję{' '}
+                        <Link 
+                          to="/regulamin" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
+                        >
+                          Regulamin serwisu
+                        </Link>{' '}
+                        oraz{' '}
+                        <Link 
+                          to="/polityka-prywatnosci" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
+                        >
+                          Politykę Prywatności
+                        </Link>
+                        . Płatności online obsługuje serwis <strong>Przelewy24</strong> (PayPro S.A.).
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>

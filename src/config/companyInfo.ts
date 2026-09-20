@@ -17,14 +17,14 @@ export interface CompanyInfo {
  * Zmiana w tym miejscu automatycznie zaktualizuje stopkę, stronę kontaktu oraz nagłówki dokumentów prawnych.
  */
 export const COMPANY_INFO: CompanyInfo = {
-  companyName: "[TUTAJ_NAZWA_FIRMY]",
+  companyName: '"Open Mind" Joanna Kubiak',
   ownerName: "mgr Joanna Kubiak",
-  nip: "[TUTAJ_NIP]",
-  regon: "[TUTAJ_REGON]",
+  nip: "7792080715",
+  regon: "301134443",
   address: {
-    street: "[TUTAJ_ULICA]",
-    postalCode: "[TUTAJ_KOD]",
-    city: "[TUTAJ_MIASTO]",
+    street: "ul. Moniuszki 39",
+    postalCode: "62-006",
+    city: "Gruszczyn",
   },
   email: "joannakubiakpsycholog@gmail.com",
   phone: "+48 602 105 795",

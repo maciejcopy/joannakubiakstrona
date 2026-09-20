@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Header from '../components/Header';
@@ -7,6 +7,10 @@ import { Phone, Mail, MapPin, Send, Wifi, ChevronRight, Building2 } from 'lucide
 import { COMPANY_INFO } from '../config/companyInfo';
 
 const ContactPage: React.FC = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -71,16 +75,6 @@ const ContactPage: React.FC = () => {
       name: 'Przychodnia Lekarska Multi-Medic',
       address: 'Cieszkowskiego 100/102, Swarzędz',
       mapsUrl: 'https://maps.google.com/?q=Cieszkowskiego+100/102+Swarzedz',
-    },
-    {
-      name: 'Med+ Centrum Medyczne Poznań',
-      address: 'Poznań',
-      mapsUrl: 'https://maps.google.com/?q=Med+Centrum+Medyczne+Poznan',
-    },
-    {
-      name: 'Centrum Zdrowia AGVITA',
-      address: 'ul. Promienista 6, Poznań',
-      mapsUrl: 'https://maps.google.com/?q=Promienista+6+Poznan',
     },
   ];
 

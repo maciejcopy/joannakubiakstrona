@@ -5,8 +5,6 @@ import { Phone, Mail, MapPin, Wifi, Calendar, ArrowRight } from 'lucide-react';
 const Contact: React.FC = () => {
   const locations = [
     { name: 'Przychodnia Multi-Medic', address: 'Cieszkowskiego 100/102, Swarzędz' },
-    { name: 'Med+ Centrum Medyczne', address: 'Poznań' },
-    { name: 'Centrum Zdrowia AGVITA', address: 'ul. Promienista 6, Poznań' },
   ];
 
   const pricingItems = [
@@ -21,10 +19,10 @@ const Contact: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4 text-balance">
-            Cennik i lokalizacje
+            Cennik i lokalizacja
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto text-pretty">
-            Przyjmuję w trzech gabinetach w Poznaniu i Swarzędzu oraz online
+            Przyjmuję w gabinecie w Swarzędzu oraz online
           </p>
         </div>
 
