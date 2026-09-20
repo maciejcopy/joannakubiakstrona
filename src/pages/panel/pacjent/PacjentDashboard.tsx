@@ -23,6 +23,7 @@ import Cal, { getCalApi } from '@calcom/embed-react';
 interface Booking {
   id: string;
   scheduled_at: string;
+  created_at?: string;
   is_first_visit: boolean;
   external_id?: string;
   cancellation_reason?: string;
@@ -106,6 +107,7 @@ export const PacjentDashboard: React.FC = () => {
         .select(`
           id,
           scheduled_at,
+          created_at,
           is_first_visit,
           external_id,
           cancellation_reason,
@@ -130,6 +132,8 @@ export const PacjentDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchBookings();
+    // Wywołanie weryfikacji i zwolnienia wygasłych rezerwacji (>2h) w tle
+    supabase.functions.invoke('cancel-expired-unpaid-bookings').catch(() => {});
   }, [fetchBookings]);
 
   // Inicjalizacja Cal.com Embed API pod kątem przełożenia wizyty
@@ -171,6 +175,86 @@ export const PacjentDashboard: React.FC = () => {
 
   const isMoreThan24Hours = (scheduledAt: string) => {
     return getHoursToVisit(scheduledAt) >= 24;
+  };
+
+  // Pomocnicza kalkulacja okna 2 godzin na opłacenie rezerwacji
+  const getPaymentDeadlineInfo = (createdAt?: string) => {
+    if (!createdAt) {
+      return { isExpired: false, minutesRemaining: 120, text: 'Wymaga opłacenia' };
+    }
+    const createdTime = new Date(createdAt).getTime();
+    const deadlineTime = createdTime + 2 * 60 * 60 * 1000; // 2 godziny w ms
+    const diffMs = deadlineTime - Date.now();
+    const minutesRemaining = Math.max(0, Math.floor(diffMs / (1000 * 60)));
+    const isExpired = diffMs <= 0;
+
+    let text = '';
+    if (isExpired) {
+      text = 'Czas na opłacenie (2h) minął';
+    } else if (minutesRemaining >= 60) {
+      const hours = Math.floor(minutesRemaining / 60);
+      const mins = minutesRemaining % 60;
+      text = `Pozostało ${hours}h ${mins > 0 ? `${mins}m` : ''} na opłacenie`;
+    } else {
+      text = `Pozostało ${minutesRemaining} min na opłacenie`;
+    }
+
+    return { isExpired, minutesRemaining, text };
+  };
+
+  // Obsługa opłacenia rezerwacji przez Przelewy24
+  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
+
+  const handlePayBooking = async (booking: Booking, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+
+    const deadline = getPaymentDeadlineInfo(booking.created_at);
+    if (deadline.isExpired) {
+      toast.error('Czas na opłacenie tej rezerwacji (2h) minął. Termin został zwolniony.');
+      return;
+    }
+
+    setPayingBookingId(booking.id);
+    const loadingToast = toast.loading('Łączenie z Przelewy24...');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('p24-create-transaction', {
+        body: {
+          bookingId: booking.id,
+          external_id: booking.external_id || undefined,
+          return_url: `${window.location.origin}/panel/pacjent/dashboard`,
+        },
+      });
+
+      if (error) {
+        let errMsg = 'Nie udało się połączyć z systemem płatności.';
+        try {
+          const body = await (error as any).context?.json();
+          if (body?.error) errMsg = body.error;
+        } catch {
+          if (error.message) errMsg = error.message;
+        }
+        toast.dismiss(loadingToast);
+        toast.error(errMsg);
+        return;
+      }
+
+      const targetUrl = data?.redirectUrl || data?.paymentUrl;
+      if (targetUrl) {
+        toast.dismiss(loadingToast);
+        toast.success('Przekierowywanie do Przelewy24...');
+        window.location.href = targetUrl;
+      } else {
+        toast.dismiss(loadingToast);
+        toast.error('Błąd: nie otrzymano adresu płatności Przelewy24.');
+      }
+    } catch (err: any) {
+      toast.dismiss(loadingToast);
+      console.error('Błąd inicjalizacji płatności:', err);
+      toast.error(err.message || 'Wystąpił błąd podczas połączenia z systemem płatności.');
+    } finally {
+      setPayingBookingId(null);
+    }
   };
 
   // Obsługa odwołania wizyty przez Edge Function calcom-cancel-booking
@@ -254,6 +338,8 @@ export const PacjentDashboard: React.FC = () => {
                   {upcomingBookings.map((booking) => {
                     const isCancelled = booking.booking_statuses.name === 'cancelled';
                     const canModify = !isCancelled && isMoreThan24Hours(booking.scheduled_at);
+                    const isUnpaid = booking.payment_statuses?.name === 'unpaid';
+                    const deadline = getPaymentDeadlineInfo(booking.created_at);
 
                     return (
                       <div
@@ -325,6 +411,41 @@ export const PacjentDashboard: React.FC = () => {
                           </span>
                           <span className="font-semibold text-gray-800">{booking.visit_types.price} zł</span>
                         </div>
+
+                        {/* Baner / przycisk dla rezerwacji nieopłaconej w oknie 2 godzin */}
+                        {isUnpaid && !isCancelled && (
+                          <div className="mt-3 pt-3 border-t border-amber-100 flex flex-col gap-2">
+                            <div className="flex items-center justify-between gap-2 text-xs">
+                              <span className={`inline-flex items-center gap-1 font-medium ${
+                                deadline.isExpired ? 'text-red-700' : 'text-amber-800'
+                              }`}>
+                                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                {deadline.text}
+                              </span>
+                            </div>
+
+                            {!deadline.isExpired && (
+                              <button
+                                type="button"
+                                disabled={payingBookingId === booking.id}
+                                onClick={(e) => handlePayBooking(booking, e)}
+                                className="w-full py-2 px-3 bg-[#2F5C3A] hover:bg-[#25492e] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition duration-200 shadow-soft"
+                              >
+                                {payingBookingId === booking.id ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Łączenie z P24...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CreditCard className="w-3.5 h-3.5" />
+                                    <span>Opłać wizytę ({booking.visit_types.price} zł)</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )}
 
                         {!isCancelled && (
                           <div className="mt-3 pt-2 text-[11px] font-semibold flex justify-end">
@@ -518,6 +639,62 @@ export const PacjentDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Baner informacyjny i przycisk opłacenia wizyty nieopłaconej */}
+              {selectedBooking.payment_statuses?.name === 'unpaid' &&
+                selectedBooking.booking_statuses.name !== 'cancelled' &&
+                new Date(selectedBooking.scheduled_at) >= new Date() && (() => {
+                  const deadline = getPaymentDeadlineInfo(selectedBooking.created_at);
+
+                  return (
+                    <div className={`p-4 rounded-2xl border ${
+                      deadline.isExpired
+                        ? 'bg-red-50/80 border-red-200 text-red-900'
+                        : 'bg-amber-50/80 border-amber-200 text-amber-950'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${
+                          deadline.isExpired ? 'text-red-600' : 'text-amber-600'
+                        }`} />
+                        <div className="space-y-1 text-xs">
+                          <p className="font-semibold text-sm">
+                            {deadline.isExpired
+                              ? 'Czas na opłacenie rezerwacji upłynął'
+                              : 'Rezerwacja oczekuje na opłacenie'}
+                          </p>
+                          <p className="leading-relaxed">
+                            {deadline.isExpired
+                              ? 'Limit 2 godzin na opłacenie rezerwacji minął. Termin został zwolniony i wizyta wkrótce zostanie usunięta.'
+                              : `Aby termin pozostał zarezerwowany, opłać wizytę w ciągu 2 godzin od jej złożenia (${deadline.text.toLowerCase()}).`}
+                          </p>
+                        </div>
+                      </div>
+
+                      {!deadline.isExpired && (
+                        <div className="mt-3 pt-3 border-t border-amber-200/60">
+                          <button
+                            type="button"
+                            disabled={payingBookingId === selectedBooking.id}
+                            onClick={() => handlePayBooking(selectedBooking)}
+                            className="w-full py-3 px-4 bg-[#2F5C3A] hover:bg-[#25492e] text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition duration-300 shadow-soft"
+                          >
+                            {payingBookingId === selectedBooking.id ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Przekierowywanie do Przelewy24...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-4 h-4" />
+                                <span>Opłać rezerwację online ({selectedBooking.visit_types.price} zł)</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
               {/* Informacja jeśli wizyta jest anulowana */}
               {selectedBooking.booking_statuses.name === 'cancelled' && (

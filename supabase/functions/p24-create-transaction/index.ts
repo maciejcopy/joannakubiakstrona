@@ -50,16 +50,33 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { external_id, profile_id, visit_type_id, scheduled_at, return_url } = await req.json();
-    if (!external_id) {
-      return json({ error: "Brak external_id" }, 400);
+    const body = await req.json().catch(() => ({}));
+    const { external_id, bookingId, booking_id, profile_id, visit_type_id, scheduled_at, return_url } = body;
+    const targetBookingId = bookingId || booking_id;
+
+    if (!external_id && !targetBookingId) {
+      return json({ error: "Wymagany parametr 'external_id' lub 'bookingId'" }, 400);
     }
 
-    // 1. Spróbuj znaleźć rezerwację z webhooka Cal.com (czekamy do 9 sekund)
-    let booking = await findBookingWithRetry(external_id, 15, 600);
+    let booking: { id: string; visit_type_id: string; client_id: string } | null = null;
 
-    // 2. Jeśli webhook Cal.com jeszcze nie dotarł, a klient przekazał dane, utwórz rezerwację awaryjnie (fallback)
-    if (!booking && profile_id && visit_type_id) {
+    // 1. Jeśli przekazano bezpośrednio ID rezerwacji (np. z panelu pacjenta)
+    if (targetBookingId) {
+      const { data: bData } = await supabase
+        .from("bookings")
+        .select("id, visit_type_id, client_id")
+        .eq("id", targetBookingId)
+        .maybeSingle();
+      booking = bData;
+    }
+
+    // 2. W przeciwnym razie szukamy po external_id z Cal.com
+    if (!booking && external_id) {
+      booking = await findBookingWithRetry(external_id, 15, 600);
+    }
+
+    // 3. Jeśli webhook Cal.com jeszcze nie dotarł, a klient przekazał dane, utwórz rezerwację awaryjnie (fallback)
+    if (!booking && external_id && profile_id && visit_type_id) {
       console.log("Rezerwacja nie dotarła z webhooka na czas. Tworzenie awaryjne dla external_id:", external_id);
 
       const { data: confirmedStatus } = await supabase
@@ -135,7 +152,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Nie znaleziono profilu klienta" }, 404);
     }
 
-    const sessionId = booking.id;
+    const sessionId = `${booking.id}__${Date.now()}`;
     const amount = Math.round(Number(visitType.price) * 100);
     const currency = "PLN";
 

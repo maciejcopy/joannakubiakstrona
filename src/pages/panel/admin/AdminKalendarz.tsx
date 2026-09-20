@@ -132,6 +132,9 @@ export const AdminKalendarz: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      // Odpalenie weryfikacji wygasłych rezerwacji w tle
+      supabase.functions.invoke('cancel-expired-unpaid-bookings').catch(() => {});
+
       const { data: bookingsData } = await supabase
         .from('bookings')
         .select('id, scheduled_at, is_first_visit, source, profiles(full_name), visit_types(id, title), booking_statuses(id, label, name), payment_statuses(id, label, name)')
