@@ -357,18 +357,29 @@ export const BookingWizard: React.FC = () => {
                 {/* Lewa kolumna: Kalendarz Cal.com */}
                 <div className="lg:col-span-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm min-h-[500px]">
                   <h2 className="text-xl font-serif font-bold text-dark-green mb-4 px-2">Wybierz dogodny termin</h2>
-                  <Cal
-                    calLink={`joanna-kubiak-0ojprl/${selectedVisitType?.cal_slug || 'konsultacja-indywidualna'}?metadata[userId]=${profileId}&metadata[visitTypeId]=${selectedVisitType?.id}`}
-                    style={{ width: "100%", height: "550px", overflow: "scroll" }}
-                    config={{
-                      name: fullName,
-                      email: email,
-                      phone: `${phonePrefix}${phoneNumber}`,
-                      theme: "light",
-                      "metadata[userId]": profileId,
-                      "metadata[visitTypeId]": selectedVisitType?.id || ""
-                    }}
-                  />
+                  {selectedVisitType?.cal_slug ? (
+                    <Cal
+                      key={selectedVisitType.id}
+                      calLink={`joanna-kubiak-0ojprl/${selectedVisitType.cal_slug}?metadata[userId]=${profileId}&metadata[visitTypeId]=${selectedVisitType.id}`}
+                      style={{ width: "100%", height: "550px", overflow: "scroll" }}
+                      config={{
+                        name: fullName,
+                        email: email,
+                        phone: `${phonePrefix}${phoneNumber}`,
+                        theme: "light",
+                        "metadata[userId]": profileId,
+                        "metadata[visitTypeId]": selectedVisitType.id
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-80 text-center px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <Calendar className="w-12 h-12 text-gray-400 mb-3" />
+                      <p className="font-semibold text-gray-700 mb-1">Brak skonfigurowanego kalendarza dla tej usługi</p>
+                      <p className="text-xs text-gray-500 max-w-sm">
+                        Usługa nie posiada przypisanego kalendarza Cal.com. Skontaktuj się z gabinetem telefonicznie lub wybierz inną usługę.
+                      </p>
+                    </div>
+                  )}
                   <div className="mt-4 px-2">
                     <button
                       onClick={() => setStep(1)}

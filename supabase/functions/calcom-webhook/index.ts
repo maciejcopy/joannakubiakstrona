@@ -92,26 +92,38 @@ Deno.serve(async (req: Request) => {
 
       // 2. Ustalenie typu wizyty (visitTypeId)
       let visitTypeId = payload.metadata?.visitTypeId;
+      let finalVisitType: { id: string; title: string; cal_slug?: string } | null = null;
 
-      if (!visitTypeId) {
-        // Spróbuj dopasować typ usługi po tytule/nazwie z Cal.com
+      if (visitTypeId) {
+        const { data: vt } = await supabase
+          .from('visit_types')
+          .select('id, title, cal_slug')
+          .eq('id', visitTypeId)
+          .maybeSingle();
+        finalVisitType = vt;
+      }
+
+      if (!finalVisitType) {
+        // Spróbuj dopasować typ usługi po tytule/nazwie z Cal.com lub slug
         const eventTitle = payload.type || payload.title || '';
         const { data: matchedVisitType } = await supabase
           .from('visit_types')
-          .select('id')
-          .ilike('title', `%${eventTitle}%`)
+          .select('id, title, cal_slug')
+          .or(`title.ilike.%${eventTitle}%,cal_slug.ilike.%${eventTitle}%`)
           .maybeSingle();
 
         if (matchedVisitType) {
+          finalVisitType = matchedVisitType;
           visitTypeId = matchedVisitType.id;
         } else {
           // Pobierz pierwszy dowolny aktywny typ wizyty jako fallback
           const { data: fallbackType } = await supabase
             .from('visit_types')
-            .select('id')
+            .select('id, title, cal_slug')
             .eq('is_active', true)
             .limit(1)
             .single();
+          finalVisitType = fallbackType;
           visitTypeId = fallbackType?.id;
         }
       }
@@ -120,8 +132,9 @@ Deno.serve(async (req: Request) => {
         throw new Error(`Nie udało się przypisać klienta (${clientId}) lub typu wizyty (${visitTypeId})`);
       }
 
-      // 3. Wybór lokalizacji (jeśli w tytule jest 'gabinet', to office, domyślnie online)
-      const isOffice = (payload.type || payload.title || '').toLowerCase().includes('gabinet');
+      // 3. Wybór lokalizacji (stacjonarna jeśli w tytule, typie wydarzenia lub nazwie usługi pojawia się 'stacjonarn' lub 'gabinet')
+      const textToCheck = `${payload.type || ''} ${payload.title || ''} ${finalVisitType?.title || ''} ${finalVisitType?.cal_slug || ''}`.toLowerCase();
+      const isOffice = textToCheck.includes('stacjonarn') || textToCheck.includes('gabinet');
       const locationId = isOffice ? (officeLocation?.id || onlineLocation?.id) : (onlineLocation?.id || officeLocation?.id);
 
       // 4. Zapisanie rezerwacji (upsert po external_id na wypadek ponownego wysłania webhooka)

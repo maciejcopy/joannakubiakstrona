@@ -112,6 +112,7 @@ CREATE TABLE public.visit_types (
   price numeric NOT NULL CHECK (price >= 0),
   duration integer NOT NULL CHECK (duration > 0), -- w minutach
   is_active boolean NOT NULL DEFAULT true,
+  cal_slug text,
   created_at timestamp with time zone NOT NULL DEFAULT now()
 );
 

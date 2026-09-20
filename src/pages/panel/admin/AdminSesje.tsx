@@ -157,11 +157,19 @@ export const AdminSesje: React.FC = () => {
                 </div>
                 <h4 className="font-serif font-bold text-lg text-[#2F5C3A] mb-2">{s.title}</h4>
                 <p className="text-sm text-gray-600 mb-4 line-clamp-3">{s.description || 'Brak opisu.'}</p>
-                {s.cal_slug && (
-                  <p className="text-xs text-gray-400 mb-4 flex items-center gap-1">
-                    <span className="font-bold">Cal.com Slug:</span> {s.cal_slug}
-                  </p>
-                )}
+                <div className="mb-4 text-xs">
+                  {s.cal_slug ? (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 font-mono">
+                      <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                      <span className="font-sans font-semibold text-gray-500">Cal.com:</span> {s.cal_slug}
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">
+                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                      <span>Brak skonfigurowanego kalendarza Cal.com</span>
+                    </div>
+                  )}
+                </div>
                 <div className="pt-3 border-t border-gray-100 flex justify-between text-xs text-gray-500 font-semibold">
                   <span>Czas: {s.duration} min</span>
                   <span className="text-gray-800">{s.price} zł</span>
@@ -204,15 +212,26 @@ export const AdminSesje: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Cal.com Event Slug</label>
+                <label className="block text-sm font-medium text-gray-700">Link lub Slug wydarzenia Cal.com</label>
                 <input
                   type="text"
                   value={calSlug}
-                  onChange={(e) => setCalSlug(e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl text-sm"
-                  placeholder="np. konsultacja-indywidualna"
+                  onChange={(e) => {
+                    let val = e.target.value.trim();
+                    // Automatyczne czyszczenie jeśli wklejono pełny URL np. https://cal.com/joanna-kubiak-0ojprl/konsultacja-indywidualna
+                    if (val.includes('cal.com/')) {
+                      const parts = val.split('cal.com/')[1]?.split('?')[0]?.split('/') || [];
+                      // Jeśli URL zawiera użytkownik/slug (np. joanna-kubiak-0ojprl/konsultacja-indywidualna), bierzemy ostatni segment
+                      val = parts[parts.length - 1] || val;
+                    }
+                    setCalSlug(val);
+                  }}
+                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-xl text-sm font-mono text-xs"
+                  placeholder="np. konsultacja-indywidualna-stacjonarnie lub https://cal.com/..."
                 />
-                <p className="text-[10px] text-gray-400 mt-1">Końcówka adresu URL Twojego wydarzenia z konta Cal.com.</p>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Wpisz sam slug wydarzenia (np. <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">konsultacja-indywidualna</code>) lub wklej pełny link z Cal.com — zostanie automatycznie przekonwertowany.
+                </p>
               </div>
 
               <div>
