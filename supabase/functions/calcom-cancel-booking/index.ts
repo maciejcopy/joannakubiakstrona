@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
     // Administrator może odwołać wizytę o dowolnej porze, pacjent wyłącznie >= 24h
     if (!isAdmin && hoursRemaining < 24) {
       return json({
-        error: "Do wizyty zostało mniej niż 24 godziny. Samodzielne odwołanie wizyty nie jest już możliwe. Prosimy o bezpośredni kontakt telefoniczny z gabinetem (tel. +48 729 933 833)."
+        error: "Do wizyty zostało mniej niż 24 godziny. Samodzielne odwołanie wizyty nie jest już możliwe. Prosimy o bezpośredni kontakt telefoniczny z gabinetem (tel. +48 602 105 795)."
       }, 400);
     }
 

@@ -85,26 +85,26 @@ const Contact: React.FC = () => {
               Kontakt bezpośredni
             </h3>
             <div className="space-y-5">
-              <a href="tel:+48729933833" className="flex items-center gap-4 group">
+              <a href="tel:+48602105795" className="flex items-center gap-4 group">
                 <div className="bg-light-green p-3 rounded-full group-hover:bg-pastel-blue/10 transition-colors">
                   <Phone className="w-5 h-5 text-dark-green" />
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Telefon</p>
                   <p className="font-semibold text-dark-green group-hover:text-pastel-blue transition-colors">
-                    +48 729 933 833
+                    +48 602 105 795
                   </p>
                 </div>
               </a>
 
-              <a href="mailto:kontakt@joannakubiakpsycholog.pl" className="flex items-center gap-4 group">
+              <a href="mailto:joannakubiakpsycholog@gmail.com" className="flex items-center gap-4 group">
                 <div className="bg-light-green p-3 rounded-full group-hover:bg-pastel-blue/10 transition-colors">
                   <Mail className="w-5 h-5 text-dark-green" />
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Email</p>
                   <p className="font-semibold text-dark-green text-sm group-hover:text-pastel-blue transition-colors">
-                    kontakt@joannakubiakpsycholog.pl
+                    joannakubiakpsycholog@gmail.com
                   </p>
                 </div>
               </a>

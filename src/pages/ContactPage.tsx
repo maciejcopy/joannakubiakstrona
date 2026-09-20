@@ -27,7 +27,7 @@ const ContactPage: React.FC = () => {
     setError('');
 
     if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co') {
-      setError('Formularz nie jest jeszcze skonfigurowany. Skontaktuj się bezpośrednio: kontakt@joannakubiakpsycholog.pl');
+      setError('Formularz nie jest jeszcze skonfigurowany. Skontaktuj się bezpośrednio: joannakubiakpsycholog@gmail.com');
       setIsLoading(false);
       return;
     }

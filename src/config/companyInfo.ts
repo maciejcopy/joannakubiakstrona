@@ -26,6 +26,6 @@ export const COMPANY_INFO: CompanyInfo = {
     postalCode: "[TUTAJ_KOD]",
     city: "[TUTAJ_MIASTO]",
   },
-  email: "kontakt@joannakubiakpsycholog.pl",
-  phone: "+48 729 933 833",
+  email: "joannakubiakpsycholog@gmail.com",
+  phone: "+48 602 105 795",
 };

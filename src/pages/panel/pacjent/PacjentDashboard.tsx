@@ -782,10 +782,10 @@ export const PacjentDashboard: React.FC = () => {
                             Do wizyty zostało mniej niż 24 godziny. Zmiana terminu lub odwołanie możliwe jest wyłącznie po kontakcie z gabinetem:
                           </p>
                           <a
-                            href="tel:+48729933833"
+                            href="tel:+48602105795"
                             className="inline-flex items-center gap-1.5 font-bold text-[#2F5C3A] hover:underline pt-1 text-sm"
                           >
-                            <Phone className="w-3.5 h-3.5" /> +48 729 933 833
+                            <Phone className="w-3.5 h-3.5" /> +48 602 105 795
                           </a>
                         </div>
                       </div>

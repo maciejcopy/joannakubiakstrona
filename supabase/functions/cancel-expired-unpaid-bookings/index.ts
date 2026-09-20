@@ -172,7 +172,7 @@ Deno.serve(async (req: Request) => {
                   </div>
 
                   <p style="font-size: 13px; color: #718096; margin-top: 30px;">
-                    W razie pytań prosimy o bezpośredni kontakt telefoniczny z gabinetem: <strong>+48 729 933 833</strong>.
+                    W razie pytań prosimy o bezpośredni kontakt telefoniczny z gabinetem: <strong>+48 602 105 795</strong>.
                   </p>
                 </div>
                 <div class="footer">
