@@ -1,0 +1,243 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const body = await req.json();
+    console.log("Otrzymano webhook z Cal.com:", JSON.stringify(body));
+
+    // Cal.com wysyła typ zdarzenia w triggerEvent (np. BOOKING_CREATED)
+    const triggerEvent = body.triggerEvent || body.trigger || body.type;
+    const payload = body.payload;
+
+    if (!payload) {
+      return new Response(JSON.stringify({ error: "Brak payload w zdarzeniu" }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const bookingUid = payload.uid;
+    const startTime = payload.startTime;
+
+    // Pobranie słowników z bazy (statusy, lokalizacje)
+    const { data: confirmedStatus } = await supabase.from('booking_statuses').select('id').eq('name', 'confirmed').single();
+    const { data: cancelledStatus } = await supabase.from('booking_statuses').select('id').eq('name', 'cancelled').single();
+    const { data: unpaidPayment } = await supabase.from('payment_statuses').select('id').eq('name', 'unpaid').single();
+    const { data: onlineLocation } = await supabase.from('location_types').select('id').eq('name', 'online').single();
+    const { data: officeLocation } = await supabase.from('location_types').select('id').eq('name', 'office').single();
+
+    if (triggerEvent === 'BOOKING_CREATED') {
+      // 0. Zabezpieczenie przed duplikatami przy przekładaniu (reschedule)
+      if (payload.rescheduleUid) {
+        console.log("Ignoruję BOOKING_CREATED ponieważ dotyczy przełożenia (rescheduleUid:", payload.rescheduleUid, ")");
+        return new Response(JSON.stringify({ success: true, message: "Ignored reschedule event in BOOKING_CREATED" }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 1. Ustalenie klienta (profileId)
+      let clientId = payload.metadata?.userId || payload.metadata?.clientId;
+      const attendee = payload.attendees?.[0];
+      const attendeeEmail = attendee?.email;
+      const attendeeName = attendee?.name || "Pacjent Cal.com";
+      const attendeePhone = attendee?.phoneNumber || attendee?.phone || "";
+
+      // Jeśli nie ma clientId w metadanych (np. ktoś zarezerwował bezpośrednio z cal.com)
+      if (!clientId && attendeeEmail) {
+        // Spróbuj znaleźć po adresie e-mail
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', attendeeEmail)
+          .maybeSingle();
+
+        if (existingProfile) {
+          clientId = existingProfile.id;
+        } else {
+          // Jeśli profil nie istnieje, stwórzmy nowy profil offline dla pacjenta
+          const { data: newProfile, error: profileErr } = await supabase
+            .from('profiles')
+            .insert({
+              full_name: attendeeName,
+              email: attendeeEmail,
+              phone_number: attendeePhone,
+              role: 'client'
+            })
+            .select()
+            .single();
+
+          if (profileErr) {
+            console.error("Błąd podczas tworzenia profilu dla webhooka:", profileErr);
+            throw profileErr;
+          }
+          clientId = newProfile.id;
+        }
+      }
+
+      // 2. Ustalenie typu wizyty (visitTypeId)
+      let visitTypeId = payload.metadata?.visitTypeId;
+      let finalVisitType: { id: string; title: string; cal_slug?: string } | null = null;
+
+      if (visitTypeId) {
+        const { data: vt } = await supabase
+          .from('visit_types')
+          .select('id, title, cal_slug')
+          .eq('id', visitTypeId)
+          .maybeSingle();
+        finalVisitType = vt;
+      }
+
+      if (!finalVisitType) {
+        // Spróbuj dopasować typ usługi po tytule/nazwie z Cal.com lub slug
+        const eventTitle = payload.type || payload.title || '';
+        const { data: matchedVisitType } = await supabase
+          .from('visit_types')
+          .select('id, title, cal_slug')
+          .or(`title.ilike.%${eventTitle}%,cal_slug.ilike.%${eventTitle}%`)
+          .maybeSingle();
+
+        if (matchedVisitType) {
+          finalVisitType = matchedVisitType;
+          visitTypeId = matchedVisitType.id;
+        } else {
+          // Pobierz pierwszy dowolny aktywny typ wizyty jako fallback
+          const { data: fallbackType } = await supabase
+            .from('visit_types')
+            .select('id, title, cal_slug')
+            .eq('is_active', true)
+            .limit(1)
+            .single();
+          finalVisitType = fallbackType;
+          visitTypeId = fallbackType?.id;
+        }
+      }
+
+      if (!clientId || !visitTypeId) {
+        throw new Error(`Nie udało się przypisać klienta (${clientId}) lub typu wizyty (${visitTypeId})`);
+      }
+
+      // 3. Wybór lokalizacji (stacjonarna jeśli w tytule, typie wydarzenia lub nazwie usługi pojawia się 'stacjonarn' lub 'gabinet')
+      const textToCheck = `${payload.type || ''} ${payload.title || ''} ${finalVisitType?.title || ''} ${finalVisitType?.cal_slug || ''}`.toLowerCase();
+      const isOffice = textToCheck.includes('stacjonarn') || textToCheck.includes('gabinet');
+      const locationId = isOffice ? (officeLocation?.id || onlineLocation?.id) : (onlineLocation?.id || officeLocation?.id);
+
+      // 4. Zapisanie rezerwacji (upsert po external_id na wypadek ponownego wysłania webhooka)
+      const { data: savedBooking, error: bookingErr } = await supabase
+        .from('bookings')
+        .upsert({
+          client_id: clientId,
+          visit_type_id: visitTypeId,
+          scheduled_at: startTime,
+          status_id: confirmedStatus?.id,
+          payment_status_id: unpaidPayment?.id,
+          location_id: locationId,
+          source: 'website',
+          external_id: bookingUid
+        }, { onConflict: 'external_id' })
+        .select()
+        .single();
+
+      if (bookingErr) {
+        console.error("Błąd zapisu rezerwacji:", bookingErr);
+        throw bookingErr;
+      }
+
+      console.log("Pomyślnie utworzono/zaktualizowano rezerwację z Cal.com:", savedBooking);
+
+    } else if (triggerEvent === 'BOOKING_CANCELLED') {
+      // Odbiór anulowania rezerwacji
+      const { data: cancelledBooking, error: cancelErr } = await supabase
+        .from('bookings')
+        .update({
+          status_id: cancelledStatus?.id,
+          cancelled_at: new Date().toISOString(),
+          cancellation_reason: payload.rejectionReason || payload.cancellationReason || "Anulowano przez Cal.com"
+        })
+        .eq('external_id', bookingUid)
+        .select()
+        .maybeSingle();
+
+      if (cancelErr) {
+        console.error("Błąd anulowania rezerwacji:", cancelErr);
+        throw cancelErr;
+      }
+
+      console.log("Anulowano rezerwację w Supabase:", cancelledBooking);
+
+    } else if (triggerEvent === 'BOOKING_RESCHEDULED') {
+      // Odbiór zmiany terminu (reschedule)
+      const oldUid = payload.rescheduleUid || bookingUid;
+      const newUid = payload.uid || bookingUid;
+
+      console.log(`Obsługa BOOKING_RESCHEDULED: stary external_id=${oldUid}, nowy external_id=${newUid}, nowy startTime=${startTime}`);
+
+      // 1. Szukamy istniejącej rezerwacji po starym UID (lub nowym jako fallback)
+      let { data: existingBooking } = await supabase
+        .from('bookings')
+        .select('id, payment_status_id, external_id')
+        .eq('external_id', oldUid)
+        .maybeSingle();
+
+      if (!existingBooking && oldUid !== newUid) {
+        const { data: fallbackBooking } = await supabase
+          .from('bookings')
+          .select('id, payment_status_id, external_id')
+          .eq('external_id', newUid)
+          .maybeSingle();
+        existingBooking = fallbackBooking;
+      }
+
+      if (existingBooking) {
+        // 2. Aktualizujemy istniejący rekord - data i nowy external_id; payment_status_id pozostaje nienaruszony!
+        const { data: updatedBooking, error: updateErr } = await supabase
+          .from('bookings')
+          .update({
+            scheduled_at: startTime,
+            external_id: newUid,
+            status_id: confirmedStatus?.id
+          })
+          .eq('id', existingBooking.id)
+          .select()
+          .single();
+
+        if (updateErr) {
+          console.error("Błąd aktualizacji rezerwacji przy reschedule:", updateErr);
+          throw updateErr;
+        }
+
+        console.log("Pomyślnie zaktualizowano termin rezerwacji (zachowując status płatności):", updatedBooking);
+      } else {
+        console.warn(`Nie odnaleziono istniejącej rezerwacji o external_id ${oldUid} ani ${newUid}.`);
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    const err = error as Error;
+    console.error("Błąd krytyczny webhooka:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+});

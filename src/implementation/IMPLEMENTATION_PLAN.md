@@ -187,41 +187,43 @@ W tym planie **nie wdrażamy** integracji z Resend. Kod i konfiguracja powiadomi
 - [ ] Krok 2.4: Dodanie zmiennych CSS Shadcn do `src/index.css` wewnątrz klasy `.shadcn-theme`
 
 ### Krok 3: Projekt Bazy Danych Supabase (Tabele i RLS w nowym projekcie)
-- [ ] Krok 3.1: Utworzenie tabeli `profiles` (z polami adresowymi, prefixem i numerem telefonu)
-- [ ] Krok 3.2: Utworzenie tabeli `booking_statuses` (słownik statusów)
-- [ ] Krok 3.3: Utworzenie tabeli `payment_statuses` (słownik płatności)
-- [ ] Krok 3.4: Utworzenie tabeli `location_types` (słownik lokalizacji)
-- [ ] Krok 3.5: Utworzenie tabeli `visit_types` (typy wizyt)
-- [ ] Krok 3.6: Utworzenie tabeli `availability` (`recurrence_rule` jako JSONB)
-- [ ] Krok 3.7: Utworzenie tabeli `availability_exceptions` (`recurrence_rule` jako JSONB)
-- [ ] Krok 3.8: Utworzenie tabeli `bookings` (z powiązaniami słownikowymi i flagą `is_first_visit`)
-- [ ] Krok 3.9: Utworzenie tabeli `app_settings` (konfiguracja globalna)
-- [ ] Krok 3.10: Utworzenie tabeli `audit_logs` (dziennik zdarzeń)
-- [ ] Krok 3.11: Konfiguracja RLS (Row Level Security) dla wszystkich tabel w nowym projekcie
-- [ ] Krok 3.12: Wdrożenie wyzwalacza `on_auth_user_created`
-- [ ] Krok 3.13: Wdrożenie wyzwalacza `update_role_on_booking`
-- [ ] Krok 3.14: Wdrożenie wyzwalacza `check_is_first_visit`
+- [x] Krok 3.1: Utworzenie tabeli `profiles` (z polami adresowymi, prefixem i numerem telefonu)
+- [x] Krok 3.2: Utworzenie tabeli `booking_statuses` (słownik statusów)
+- [x] Krok 3.3: Utworzenie tabeli `payment_statuses` (słownik płatności)
+- [x] Krok 3.4: Utworzenie tabeli `location_types` (słownik lokalizacji)
+- [x] Krok 3.5: Utworzenie tabeli `visit_types` (typy wizyt)
+- [x] Krok 3.6: Utworzenie tabeli `availability` (`recurrence_rule` jako JSONB)
+- [x] Krok 3.7: Utworzenie tabeli `availability_exceptions` (`recurrence_rule` jako JSONB)
+- [x] Krok 3.8: Utworzenie tabeli `bookings` (z powiązaniami słownikowymi i flagą `is_first_visit`)
+- [x] Krok 3.9: Utworzenie tabeli `app_settings` (konfiguracja globalna)
+- [x] Krok 3.10: Utworzenie tabeli `audit_logs` (dziennik zdarzeń)
+- [x] Krok 3.11: Konfiguracja RLS (Row Level Security) dla wszystkich tabel w nowym projekcie
+- [x] Krok 3.12: Wdrożenie wyzwalacza `on_auth_user_created`
+- [x] Krok 3.13: Wdrożenie wyzwalacza `update_role_on_booking`
+- [x] Krok 3.14: Wdrożenie wyzwalacza `check_is_first_visit`
 
 ### Krok 4: Projekt Ścieżek i Routingu (Routing)
-- [ ] Krok 4.1: Konfiguracja głównego routera w `src/App.tsx` (stary kod formularza kontaktowego pozostaje nienaruszony)
-- [ ] Krok 4.2: Stworzenie widoków logowania `/auth/login` i rejestracji `/auth/register`
-- [ ] Krok 4.3: Stworzenie kreatora rezerwacji `/rezerwacja` (usługi -> terminy -> podsumowanie)
-- [ ] Krok 4.4: Stworzenie panelu pacjenta `/panel/pacjent/dashboard` i profilu `/panel/pacjent/profil`
-- [ ] Krok 4.5: Stworzenie panelu admina `/panel/admin/dashboard` i `/panel/admin/kalendarz`
-- [ ] Krok 4.6: Stworzenie podstrony szczegółów rezerwacji `/panel/admin/bookings/:id`
-- [ ] Krok 4.7: Stworzenie podstrony profilu klienta `/panel/admin/clients/:id`
-- [ ] Krok 4.8: Stworzenie podstron CRUD sesji `/panel/admin/sesje`, listy klientów `/panel/admin/klienci` i ustawień `/panel/admin/ustawienia`
-- [ ] Krok 4.9: Implementacja mechanizmu zabezpieczania ścieżek (Auth Guards dla ról pacjent/admin)
+- [x] Krok 4.1: Konfiguracja głównego routera w `src/App.tsx` (stary kod formularza kontaktowego pozostaje nienaruszony)
+- [x] Krok 4.2: Stworzenie widoków logowania `/auth/login` i rejestracji `/auth/register`
+- [x] Krok 4.3: Stworzenie kreatora rezerwacji `/rezerwacja` (usługi -> terminy -> podsumowanie)
+- [x] Krok 4.4: Stworzenie panelu pacjenta `/panel/pacjent/dashboard` i profilu `/panel/pacjent/profil`
+- [x] Krok 4.5: Stworzenie panelu admina `/panel/admin/dashboard` i `/panel/admin/kalendarz`
+- [x] Krok 4.6: Stworzenie podstrony szczegółów rezerwacji `/panel/admin/bookings/:id`
+- [x] Krok 4.7: Stworzenie podstrony profilu klienta `/panel/admin/clients/:id`
+- [x] Krok 4.8: Stworzenie podstron CRUD sesji `/panel/admin/sesje`, listy klientów `/panel/admin/klienci` i ustawień `/panel/admin/ustawienia`
+- [x] Krok 4.9: Implementacja mechanizmu zabezpieczania ścieżek (Auth Guards dla ról pacjent/admin)
+- [x] Krok 4.10: Stworzenie uniwersalnej strony profilu `/profil` dostępnej dla każdej roli
+- [x] Krok 4.11: Wdrożenie przycisku profilu z rozwijanym menu (Profil, Wyloguj się) w nagłówku strony głównej dla zalogowanych użytkowników
 
 ### Krok 5: UI/UX i Dostosowanie Wizualne (Branding Guide)
-- [ ] Krok 5.1: Zastosowanie kolorystyki spójnej z Landing Page w nowych panelach
-- [ ] Krok 5.2: Konfiguracja i integracja Toast w pozycji `top-right`
-- [ ] Krok 5.3: Implementacja okien dialogowych `Dialog` dla potwierdzeń (anulowania wizyt itp.)
+- [x] Krok 5.1: Zastosowanie kolorystyki spójnej z Landing Page w nowych panelach
+- [x] Krok 5.2: Konfiguracja i integracja Toast w pozycji `top-right`
+- [x] Krok 5.3: Implementacja okien dialogowych `Dialog` dla potwierdzeń (anulowania wizyt itp.)
 
 ### Krok 6: Weryfikacja i Testy (Nowy Projekt Supabase)
-- [ ] Krok 6.1: Sprawdzenie poprawności połączenia z nowym projektem na nowych kluczach
-- [ ] Krok 6.2: Testy automatyczne triggera `is_first_visit` oraz procedury usuwania konta
-- [ ] Krok 6.3: Manualny test procesu rezerwacji pacjenta online i weryfikacja bazy danych
-- [ ] Krok 6.4: Manualny test dodawania rezerwacji offline przez panel administratora
-- [ ] Krok 6.5: Weryfikacja poprawności ograniczeń czasowych na bazie `app_settings`
-- [ ] Krok 6.6: Weryfikacja wizualna spójności Landing Page po wdrożeniu Shadcn/ui
+- [x] Krok 6.1: Sprawdzenie poprawności połączenia z nowym projektem na nowych kluczach
+- [x] Krok 6.2: Testy automatyczne triggera `is_first_visit` oraz procedury usuwania konta
+- [x] Krok 6.3: Manualny test procesu rezerwacji pacjenta online i weryfikacja bazy danych
+- [x] Krok 6.4: Manualny test dodawania rezerwacji offline przez panel administratora
+- [x] Krok 6.5: Weryfikacja poprawności ograniczeń czasowych na bazie `app_settings`
+- [x] Krok 6.6: Weryfikacja wizualna spójności Landing Page po wdrożeniu Shadcn/ui

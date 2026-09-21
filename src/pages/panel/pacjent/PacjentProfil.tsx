@@ -1,0 +1,287 @@
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../../../lib/supabase';
+import { PanelLayout } from '../../../components/PanelLayout';
+import { pacjentSidebarItems } from '../../../config/sidebarConfig';
+import { DatePicker } from '../../../components/DatePicker';
+
+export const PacjentProfil: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [profileId, setProfileId] = useState('');
+  const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  
+  // Pola formularza
+  const [fullName, setFullName] = useState('');
+  const [phonePrefix, setPhonePrefix] = useState('+48');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const calculateAge = (birthDateStr: string): number => {
+    if (!birthDateStr) return 0;
+    const today = new Date();
+    const birthDate = new Date(birthDateStr);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const loadSignedAvatar = async (path: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .createSignedUrl(path, 60 * 60); // 1 hour
+      if (error) throw error;
+      if (data) {
+        setAvatarUrl(data.signedUrl);
+      }
+    } catch (err) {
+      console.error('Error loading signed avatar:', err);
+    }
+  };
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (!user) return;
+        
+        setEmail(user.email || '');
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('auth_id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setProfileId(data.id);
+          setFullName(data.full_name || '');
+          setPhonePrefix(data.phone_prefix || '+48');
+          setPhoneNumber(data.phone_number || '');
+          setDateOfBirth(data.date_of_birth || '');
+          
+          if (data.avatar_url) {
+            await loadSignedAvatar(data.avatar_url);
+          }
+        }
+      } catch (err: any) {
+        console.error('Błąd pobierania profilu:', err);
+        setErrorMsg('Nie udało się pobrać danych profilowych.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, []);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Wybrany plik musi być zdjęciem.');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Brak aktywnej sesji.');
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${session.user.id}/avatar_${Date.now()}.${fileExt}`;
+
+      // Upload file to the 'avatars' bucket
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadErr) throw uploadErr;
+
+      // Update user profile record in profiles
+      const { error: dbErr } = await supabase
+        .from('profiles')
+        .update({ avatar_url: filePath })
+        .eq('id', profileId);
+
+      if (dbErr) throw dbErr;
+
+      sessionStorage.removeItem('panel_avatar_url');
+      sessionStorage.removeItem('panel_profile_timestamp');
+
+      await loadSignedAvatar(filePath);
+      setSuccessMsg('Zdjęcie profilowe zostało zaktualizowane.');
+    } catch (err: any) {
+      console.error('Error uploading avatar:', err);
+      setErrorMsg(err.message || 'Wystąpił błąd podczas wgrywania zdjęcia.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+
+    if (dateOfBirth && calculateAge(dateOfBirth) < 18) {
+      setErrorMsg('Musisz mieć ukończone 18 lat.');
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: fullName,
+          phone_prefix: phonePrefix,
+          phone_number: phoneNumber,
+          date_of_birth: dateOfBirth || null
+        })
+        .eq('id', profileId);
+
+      if (error) throw error;
+      sessionStorage.removeItem('panel_user_name');
+      sessionStorage.removeItem('panel_profile_timestamp');
+      setSuccessMsg('Profil został pomyślnie zaktualizowany.');
+    } catch (err: any) {
+      console.error('Błąd zapisu profilu:', err);
+      setErrorMsg(err.message || 'Wystąpił błąd podczas zapisywania zmian.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <PanelLayout title="Mój Profil" role="pacjent" sidebarItems={pacjentSidebarItems}>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="relative w-10 h-10">
+            <div className="absolute inset-0 rounded-full border-4 border-[#C4DEBE]/30"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-[#2F5C3A] animate-spin"></div>
+          </div>
+          <p className="text-xs font-semibold text-[#2F5C3A]/70 animate-pulse font-serif">Wczytywanie profilu...</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
+          {successMsg && (
+            <div className="bg-green-50 border border-green-200 text-[#2F5C3A] px-4 py-3 rounded-xl text-sm">
+              {successMsg}
+            </div>
+          )}
+          {errorMsg && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              {errorMsg}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 mb-6">
+            <div className="relative group h-24 w-24">
+              <div className="h-24 w-24 rounded-full bg-[#C4DEBE]/40 flex items-center justify-center font-bold text-4xl text-[#2F5C3A] shadow-soft overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Zdjęcie profilowe" className="h-full w-full object-cover" />
+                ) : (
+                  fullName ? fullName.charAt(0).toUpperCase() : 'U'
+                )}
+              </div>
+              
+              {/* Upload button with camera icon in bottom-right */}
+              <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#2F5C3A] hover:bg-[#3A8BA8] border-2 border-white flex items-center justify-center text-white cursor-pointer shadow transition duration-300">
+                {uploading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-white"></div>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-2xl font-serif font-bold text-[#2F5C3A]">{fullName || 'Użytkownik'}</h2>
+              <p className="text-xs text-gray-400">{email}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700">Imię i nazwisko</label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Numer telefonu</label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  value={phonePrefix}
+                  onChange={(e) => setPhonePrefix(e.target.value)}
+                  className="w-20 px-3 py-2.5 border border-gray-300 rounded-xl text-center sm:text-sm"
+                />
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2F5C3A] focus:border-[#2F5C3A] sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Data urodzenia</label>
+              <DatePicker
+                value={dateOfBirth}
+                onChange={setDateOfBirth}
+                maxDate={(() => {
+                  const d = new Date();
+                  d.setFullYear(d.getFullYear() - 18);
+                  return d.toISOString().split('T')[0];
+                })()}
+                placeholder="Wybierz datę urodzenia..."
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-6 py-3 bg-[#2F5C3A] hover:bg-[#2F5C3A]/90 text-white font-medium rounded-xl transition duration-300 shadow-soft"
+            >
+              {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+            </button>
+          </div>
+        </form>
+      )}
+    </PanelLayout>
+  );
+};

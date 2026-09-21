@@ -6,17 +6,8 @@ const TopBar: React.FC = () => {
     <div className="bg-warm-beige py-2 text-sm hidden md:block">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          {/* Kontakt */}
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <Phone className="w-4 h-4 text-dark-green" />
-              <span className="text-gray-600">+48 729 933 833</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Mail className="w-4 h-4 text-dark-green" />
-              <span className="text-gray-600">kontakt@joannakubiakpsycholog.pl</span>
-            </div>
-          </div>
+          {/* Puste miejsce z lewej strony */}
+          <div></div>
 
           {/* Social media i ikony */}
           <div className="flex items-center space-x-3">
