@@ -202,10 +202,8 @@ export const PacjentDashboard: React.FC = () => {
     return { isExpired, minutesRemaining, text };
   };
 
-  // Obsługa opłacenia rezerwacji przez Przelewy24
-  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
-
-  const handlePayBooking = async (booking: Booking, e?: React.MouseEvent) => {
+  // Obsługa opłacenia rezerwacji – przekierowanie do Kroku 3 w BookingWizard (z wymogiem akceptacji regulaminu)
+  const handlePayBooking = (booking: Booking, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
 
     const deadline = getPaymentDeadlineInfo(booking.created_at);
@@ -214,47 +212,22 @@ export const PacjentDashboard: React.FC = () => {
       return;
     }
 
-    setPayingBookingId(booking.id);
-    const loadingToast = toast.loading('Łączenie z Przelewy24...');
+    // Zamknij ewentualny modal szczegółów wizyty
+    setSelectedBooking(null);
 
-    try {
-      const { data, error } = await supabase.functions.invoke('p24-create-transaction', {
-        body: {
-          bookingId: booking.id,
-          external_id: booking.external_id || undefined,
-          return_url: `${window.location.origin}/panel/pacjent/dashboard`,
+    // Przekieruj do kreatora na krok 3 (podsumowanie i płatność)
+    navigate('/rezerwacja', {
+      state: {
+        from: '/panel/pacjent/dashboard',
+        step: 3,
+        booking: {
+          id: booking.id,
+          uid: booking.external_id,
+          date: booking.scheduled_at,
+          visit_type: booking.visit_types,
         },
-      });
-
-      if (error) {
-        let errMsg = 'Nie udało się połączyć z systemem płatności.';
-        try {
-          const body = await (error as any).context?.json();
-          if (body?.error) errMsg = body.error;
-        } catch {
-          if (error.message) errMsg = error.message;
-        }
-        toast.dismiss(loadingToast);
-        toast.error(errMsg);
-        return;
-      }
-
-      const targetUrl = data?.redirectUrl || data?.paymentUrl;
-      if (targetUrl) {
-        toast.dismiss(loadingToast);
-        toast.success('Przekierowywanie do Przelewy24...');
-        window.location.href = targetUrl;
-      } else {
-        toast.dismiss(loadingToast);
-        toast.error('Błąd: nie otrzymano adresu płatności Przelewy24.');
-      }
-    } catch (err: any) {
-      toast.dismiss(loadingToast);
-      console.error('Błąd inicjalizacji płatności:', err);
-      toast.error(err.message || 'Wystąpił błąd podczas połączenia z systemem płatności.');
-    } finally {
-      setPayingBookingId(null);
-    }
+      },
+    });
   };
 
   // Obsługa odwołania wizyty przez Edge Function calcom-cancel-booking
@@ -427,21 +400,11 @@ export const PacjentDashboard: React.FC = () => {
                             {!deadline.isExpired && (
                               <button
                                 type="button"
-                                disabled={payingBookingId === booking.id}
                                 onClick={(e) => handlePayBooking(booking, e)}
-                                className="w-full py-2 px-3 bg-[#2F5C3A] hover:bg-[#25492e] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition duration-200 shadow-soft"
+                                className="w-full py-2 px-3 bg-[#2F5C3A] hover:bg-[#25492e] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition duration-200 shadow-soft cursor-pointer"
                               >
-                                {payingBookingId === booking.id ? (
-                                  <>
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    <span>Łączenie z P24...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <CreditCard className="w-3.5 h-3.5" />
-                                    <span>Opłać wizytę ({booking.visit_types.price} zł)</span>
-                                  </>
-                                )}
+                                <CreditCard className="w-3.5 h-3.5" />
+                                <span>Opłać wizytę ({booking.visit_types.price} zł)</span>
                               </button>
                             )}
                           </div>
@@ -674,21 +637,11 @@ export const PacjentDashboard: React.FC = () => {
                         <div className="mt-3 pt-3 border-t border-amber-200/60">
                           <button
                             type="button"
-                            disabled={payingBookingId === selectedBooking.id}
                             onClick={() => handlePayBooking(selectedBooking)}
-                            className="w-full py-3 px-4 bg-[#2F5C3A] hover:bg-[#25492e] text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition duration-300 shadow-soft"
+                            className="w-full py-3 px-4 bg-[#2F5C3A] hover:bg-[#25492e] text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition duration-300 shadow-soft cursor-pointer"
                           >
-                            {payingBookingId === selectedBooking.id ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>Przekierowywanie do Przelewy24...</span>
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="w-4 h-4" />
-                                <span>Opłać rezerwację online ({selectedBooking.visit_types.price} zł)</span>
-                              </>
-                            )}
+                            <CreditCard className="w-4 h-4" />
+                            <span>Opłać rezerwację online ({selectedBooking.visit_types.price} zł)</span>
                           </button>
                         </div>
                       )}

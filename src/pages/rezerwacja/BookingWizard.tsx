@@ -17,16 +17,26 @@ interface VisitType {
 }
 
 export const BookingWizard: React.FC = () => {
-  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as any;
+  const initialBooking = locationState?.booking;
+  const initialStep = locationState?.step ? Number(locationState.step) : 1;
+  const fromPath = locationState?.from || '/';
+  const showDashboardBg = fromPath.includes('/panel/pacjent/dashboard');
+
+  const [step, setStep] = useState(initialStep);
   const [visitTypes, setVisitTypes] = useState<VisitType[]>([]);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [selectedVisitType, setSelectedVisitType] = useState<VisitType | null>(null);
+  const [selectedVisitType, setSelectedVisitType] = useState<VisitType | null>(initialBooking?.visit_type || null);
   
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsWarning, setTermsWarning] = useState(false);
-  const [pendingBooking, setPendingBooking] = useState<{ uid: string; date?: string } | null>(null);
+  const [pendingBooking, setPendingBooking] = useState<{ id?: string; uid?: string; date?: string } | null>(
+    initialBooking ? { id: initialBooking.id, uid: initialBooking.uid, date: initialBooking.date } : null
+  );
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
   
   // Dane pacjenta
@@ -35,6 +45,23 @@ export const BookingWizard: React.FC = () => {
   const [phonePrefix, setPhonePrefix] = useState('+48');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+
+  // Reaguj na zmiany stanu nawigacji (np. ponowne kliknięcie opłacenia z panelu pacjenta)
+  useEffect(() => {
+    if (locationState?.step) {
+      setStep(Number(locationState.step));
+    }
+    if (locationState?.booking) {
+      setPendingBooking({
+        id: locationState.booking.id,
+        uid: locationState.booking.uid,
+        date: locationState.booking.date,
+      });
+      if (locationState.booking.visit_type) {
+        setSelectedVisitType(locationState.booking.visit_type);
+      }
+    }
+  }, [location.state]);
 
   // Formatowanie daty dla podsumowania
   const formatScheduledDate = (dateString?: string) => {
@@ -68,14 +95,9 @@ export const BookingWizard: React.FC = () => {
   useEffect(() => {
     selectedVisitTypeRef.current = selectedVisitType;
   }, [selectedVisitType]);
-  
-  const navigate = useNavigate();
-  const location = useLocation();
-  const fromPath = (location.state as any)?.from || '/';
-  const showDashboardBg = fromPath.includes('/panel/pacjent/dashboard');
 
   // Funkcja inicjująca płatność w Przelewy24
-  const initiatePayment = async (bookingInfo: { uid: string; date?: string }) => {
+  const initiatePayment = async (bookingInfo: { id?: string; uid?: string; date?: string }) => {
     if (isSubmittingPaymentRef.current) return;
     isSubmittingPaymentRef.current = true;
     setIsSubmittingPayment(true);
@@ -97,7 +119,8 @@ export const BookingWizard: React.FC = () => {
               : {}),
           },
           body: JSON.stringify({
-            external_id: bookingInfo.uid,
+            bookingId: bookingInfo.id || undefined,
+            external_id: bookingInfo.uid || undefined,
             profile_id: profileIdRef.current || undefined,
             visit_type_id: selectedVisitTypeRef.current?.id || undefined,
             scheduled_at: bookingInfo.date || new Date().toISOString(),
