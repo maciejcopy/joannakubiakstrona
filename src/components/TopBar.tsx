@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Mail, Facebook, Instagram } from 'lucide-react';
+import { Facebook, Instagram } from 'lucide-react';
 
 const TopBar: React.FC = () => {
   return (
