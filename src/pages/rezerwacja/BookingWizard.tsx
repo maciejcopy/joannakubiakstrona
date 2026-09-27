@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
-import { UserPlus, LogIn, Calendar, X, CheckCircle } from 'lucide-react';
+import { UserPlus, LogIn, Calendar, X, Clock, ShieldCheck } from 'lucide-react';
 import { LandingPage } from '../LandingPage';
 import { PacjentDashboard } from '../panel/pacjent/PacjentDashboard';
 import Cal, { getCalApi } from "@calcom/embed-react";
@@ -24,12 +24,37 @@ export const BookingWizard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedVisitType, setSelectedVisitType] = useState<VisitType | null>(null);
   
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsWarning, setTermsWarning] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<{ uid: string; date?: string } | null>(null);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  
   // Dane pacjenta
   const [profileId, setProfileId] = useState('');
   const [fullName, setFullName] = useState('');
   const [phonePrefix, setPhonePrefix] = useState('+48');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+
+  // Formatowanie daty dla podsumowania
+  const formatScheduledDate = (dateString?: string) => {
+    if (!dateString) return 'Termin wybrany w kalendarzu';
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return dateString;
+      const formatted = new Intl.DateTimeFormat('pl-PL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(d);
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    } catch {
+      return dateString;
+    }
+  };
 
   // Refs zapobiegające nieświeżemu domknięciu w Cal.com embed API listenerze
   const profileIdRef = useRef('');
@@ -48,6 +73,63 @@ export const BookingWizard: React.FC = () => {
   const location = useLocation();
   const fromPath = (location.state as any)?.from || '/';
   const showDashboardBg = fromPath.includes('/panel/pacjent/dashboard');
+
+  // Funkcja inicjująca płatność w Przelewy24
+  const initiatePayment = async (bookingInfo: { uid: string; date?: string }) => {
+    if (isSubmittingPaymentRef.current) return;
+    isSubmittingPaymentRef.current = true;
+    setIsSubmittingPayment(true);
+
+    toast.dismiss();
+    const loadingToast = toast.loading("Trwa przygotowywanie płatności Przelewy24...");
+    try {
+      const response = await fetch(
+        "https://znlwhnyxvqxtvixkyrse.supabase.co/functions/v1/p24-create-transaction",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(import.meta.env.VITE_SUPABASE_ANON_KEY
+              ? {
+                  apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+                  Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                }
+              : {}),
+          },
+          body: JSON.stringify({
+            external_id: bookingInfo.uid,
+            profile_id: profileIdRef.current || undefined,
+            visit_type_id: selectedVisitTypeRef.current?.id || undefined,
+            scheduled_at: bookingInfo.date || new Date().toISOString(),
+            return_url: `${window.location.origin}/panel/pacjent/dashboard`
+          }),
+        }
+      );
+
+      toast.dismiss(loadingToast);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.redirectUrl) {
+          toast.loading("Przekierowywanie do Przelewy24...");
+          window.location.href = data.redirectUrl;
+          return;
+        }
+      } else {
+        console.error("Błąd odpowiedzi p24-create-transaction:", response.status, await response.text());
+        toast.error("Nie udało się rozpocząć transakcji Przelewy24. Wizytę możesz opłacić w panelu pacjenta.");
+        navigate('/panel/pacjent/dashboard');
+      }
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      console.error("Błąd podczas wywołania p24-create-transaction:", err);
+      toast.error("Wystąpił błąd podczas łączenia z systemem płatności.");
+      navigate('/panel/pacjent/dashboard');
+    } finally {
+      isSubmittingPaymentRef.current = false;
+      setIsSubmittingPayment(false);
+    }
+  };
 
   // Sprawdzenie sesji i autoryzacji
   useEffect(() => {
@@ -99,64 +181,17 @@ export const BookingWizard: React.FC = () => {
           layout: "month_view"
         });
         
-        // Register booking successful listener
+        // Register booking successful listener -> Krok 3 podsumowania
         cal("on", {
           action: "bookingSuccessfulV2",
           callback: async (e: { detail: { data: any } }) => {
-            if (isSubmittingPaymentRef.current) return;
-            isSubmittingPaymentRef.current = true;
-
             console.log("Cal.com booking success event:", e.detail);
             const bookingUid = e.detail?.data?.uid;
+            const bookingDate = e.detail?.data?.date || e.detail?.data?.startTime || new Date().toISOString();
 
             if (bookingUid) {
-              toast.dismiss();
-              const loadingToast = toast.loading("Trwa przygotowywanie płatności Przelewy24...");
-              try {
-                const response = await fetch(
-                  "https://znlwhnyxvqxtvixkyrse.supabase.co/functions/v1/p24-create-transaction",
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      ...(import.meta.env.VITE_SUPABASE_ANON_KEY
-                        ? {
-                            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-                            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                          }
-                        : {}),
-                    },
-                    body: JSON.stringify({
-                      external_id: bookingUid,
-                      profile_id: profileIdRef.current || undefined,
-                      visit_type_id: selectedVisitTypeRef.current?.id || undefined,
-                      scheduled_at: e.detail?.data?.date || e.detail?.data?.startTime || new Date().toISOString(),
-                      return_url: `${window.location.origin}/panel/pacjent/dashboard`
-                    }),
-                  }
-                );
-
-                toast.dismiss(loadingToast);
-
-                if (response.ok) {
-                  const data = await response.json();
-                  if (data?.redirectUrl) {
-                    toast.loading("Przekierowywanie do Przelewy24...");
-                    window.location.href = data.redirectUrl;
-                    return;
-                  }
-                } else {
-                  console.error("Błąd odpowiedzi p24-create-transaction:", response.status, await response.text());
-                  toast.error("Nie udało się rozpocząć transakcji Przelewy24. Wizytę możesz opłacić w panelu pacjenta.");
-                }
-              } catch (err) {
-                toast.dismiss(loadingToast);
-                console.error("Błąd podczas wywołania p24-create-transaction:", err);
-                toast.error("Wystąpił błąd podczas łączenia z systemem płatności.");
-              }
+              setPendingBooking({ uid: bookingUid, date: bookingDate });
             }
-
-            // Pokazanie ekranu podsumowania tylko w przypadku braku przekierowania do płatności
             setStep(3);
           }
         });
@@ -309,7 +344,7 @@ export const BookingWizard: React.FC = () => {
               2. Wybór terminu
             </div>
             <div className={`flex-1 text-center py-4 text-xs font-semibold ${step === 3 ? 'text-dark-green border-b-2 border-dark-green' : 'text-gray-400'}`}>
-              3. Dane i podsumowanie
+              3. Podsumowanie i płatność
             </div>
           </div>
 
@@ -398,7 +433,6 @@ export const BookingWizard: React.FC = () => {
                       src="/zdjęcia/joanna_kubiak.jpg"
                       alt="mgr Joanna Kubiak"
                       onError={(e) => {
-                        // Fallback w razie gdyby ścieżka do zdjęcia była inna
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop";
                       }}
                       className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-white shadow-soft mb-4"
@@ -406,7 +440,7 @@ export const BookingWizard: React.FC = () => {
                     <h3 className="font-serif font-bold text-lg text-dark-green">mgr Joanna Kubiak</h3>
                     <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Psycholog dziecięcy i młodzieży</p>
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      Konsultacja odbywa się w bezpiecznej, wspierającej atmosferze. Zapraszam do wyboru dogodnego terminu w kalendarzu obok.
+                      Konsultacja odbywa się w bezpiecznej, wspierającej atmosferze. Wybierz dogodny termin w kalendarzu obok.
                     </p>
                   </div>
 
@@ -421,72 +455,152 @@ export const BookingWizard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Informacja o płatnościach online */}
+                  {/* Informacja o kolejnym kroku i płatnościach online */}
                   <div className="bg-[#F6FAF4] rounded-3xl p-6 border border-[#C4DEBE]/35 text-sm text-gray-600 space-y-2">
                     <div className="flex gap-2 items-start">
                       <span className="p-1 bg-[#C4DEBE]/40 text-[#2F5C3A] rounded-lg mt-0.5">💡</span>
-                      <p>Po wyborze terminu nastąpi automatyczne przekierowanie do bezpiecznej płatności online realizowanej przez <strong>Przelewy24</strong>.</p>
+                      <p>Po wybraniu terminu w kalendarzu przejdziesz do podsumowania wizyty i bezpiecznej płatności online przez <strong>Przelewy24</strong>.</p>
                     </div>
-                  </div>
-
-                  {/* Klauzula prawna akceptacji regulaminu i polityki (wymóg Przelewy24) */}
-                  <div className="p-4 bg-gray-50/90 rounded-2xl border border-gray-200 text-xs text-gray-600 leading-relaxed shadow-2xs">
-                    <label className="flex items-start gap-2.5 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        defaultChecked
-                        required
-                        className="mt-0.5 rounded border-gray-300 text-dark-green focus:ring-dark-green h-4 w-4 shrink-0" 
-                      />
-                      <span>
-                        Akceptuję{' '}
-                        <Link 
-                          to="/regulamin" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
-                        >
-                          Regulamin serwisu
-                        </Link>{' '}
-                        oraz{' '}
-                        <Link 
-                          to="/polityka-prywatnosci" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
-                        >
-                          Politykę Prywatności
-                        </Link>
-                        . Płatności online obsługuje serwis <strong>Przelewy24</strong> (PayPro S.A.).
-                      </span>
-                    </label>
                   </div>
                 </div>
               </div>
             )}
 
             {step === 3 && (
-              <div className="text-center py-12 px-4 max-w-md mx-auto">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-[#F6FAF4] text-[#2F5C3A] rounded-full mb-6 border-2 border-[#C4DEBE]">
-                  <CheckCircle className="w-10 h-10" />
+              <div className="max-w-xl mx-auto py-2">
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-[#F6FAF4] text-dark-green rounded-full mb-3 border border-[#C4DEBE]/40">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <h2 className="text-2xl font-serif font-bold text-dark-green">Podsumowanie rezerwacji</h2>
+                  <p className="text-xs text-gray-500 mt-1">Sprawdź szczegóły swojej wizyty i przejdź do płatności</p>
                 </div>
-                <h2 className="text-3xl font-serif font-bold text-dark-green mb-4">Rezerwacja zakończona!</h2>
-                <p className="text-gray-600 text-sm mb-8 leading-relaxed">
-                  Twoja wizyta na usługę <strong>{selectedVisitType?.title}</strong> została pomyślnie zapisana. Joanna otrzymała powiadomienie o nowej rezerwacji. Szczegóły oraz link do spotkania online (jeśli dotyczy) znajdziesz w swoim panelu pacjenta.
-                </p>
+
+                {/* Karta ze szczegółami rezerwacji */}
+                <div className="bg-[#F9FAF8] rounded-2xl border border-gray-200 p-6 mb-6 space-y-4">
+                  <div className="flex items-start justify-between pb-4 border-b border-gray-200/80">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Wybrana usługa</span>
+                      <h3 className="font-serif font-bold text-lg text-dark-green mt-0.5">{selectedVisitType?.title}</h3>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        <Clock className="w-3.5 h-3.5 text-dark-green/70" />
+                        <span>Czas trwania: {selectedVisitType?.duration} min</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Do zapłaty</span>
+                      <p className="font-serif font-bold text-2xl text-dark-green mt-0.5">{selectedVisitType?.price} zł</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                      <div className="w-8 h-8 rounded-full bg-light-green-bg flex items-center justify-center text-dark-green shrink-0">
+                        <Calendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[10px] uppercase font-semibold">Termin wizyty</span>
+                        <span className="font-semibold text-gray-800">
+                          {formatScheduledDate(pendingBooking?.date)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                      <img 
+                        src="/zdjęcia/joanna_kubiak.jpg" 
+                        alt="mgr Joanna Kubiak"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop";
+                        }}
+                        className="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200" 
+                      />
+                      <div>
+                        <span className="text-gray-400 block text-[10px] uppercase font-semibold">Specjalista</span>
+                        <span className="font-semibold text-gray-800">mgr Joanna Kubiak</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Klauzula prawna akceptacji regulaminu i polityki */}
+                <div className={`p-4 rounded-2xl border transition-all text-xs text-gray-700 leading-relaxed mb-6 ${
+                  termsWarning 
+                    ? 'border-red-300 bg-red-50/70 shadow-xs' 
+                    : 'border-gray-200 bg-gray-50/70'
+                }`}>
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={termsAccepted}
+                      onChange={(e) => {
+                        setTermsAccepted(e.target.checked);
+                        if (e.target.checked) setTermsWarning(false);
+                      }}
+                      className="mt-0.5 rounded border-gray-300 text-dark-green focus:ring-dark-green h-4 w-4 shrink-0 cursor-pointer" 
+                    />
+                    <span>
+                      Akceptuję{' '}
+                      <Link 
+                        to="/regulamin" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
+                      >
+                        Regulamin serwisu
+                      </Link>{' '}
+                      oraz{' '}
+                      <Link 
+                        to="/polityka-prywatnosci" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-dark-green font-semibold underline underline-offset-2 hover:text-pastel-blue transition-colors"
+                      >
+                        Politykę Prywatności
+                      </Link>
+                      . Płatności online obsługuje serwis <strong>Przelewy24</strong> (PayPro S.A.).
+                    </span>
+                  </label>
+                  {termsWarning && (
+                    <p className="text-[11px] text-red-600 font-medium mt-2 pl-7 flex items-center gap-1.5 animate-fadeIn">
+                      <span>⚠️</span>
+                      <span>Zaznacz powyższe pole, aby sfinalizować rezerwację i przejść do płatności.</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Przycisk płatności i powrotu */}
                 <div className="space-y-3">
                   <button
-                    onClick={() => navigate('/panel/pacjent/dashboard')}
-                    className="w-full bg-[#2F5C3A] hover:bg-[#2F5C3A]/90 text-white font-semibold py-3 px-6 rounded-xl transition duration-300 shadow-soft"
+                    type="button"
+                    onClick={() => {
+                      if (!termsAccepted) {
+                        setTermsWarning(true);
+                        return;
+                      }
+                      if (pendingBooking) {
+                        initiatePayment(pendingBooking);
+                      } else {
+                        toast.error("Brak danych rezerwacji. Wybierz termin ponownie.");
+                        setStep(2);
+                      }
+                    }}
+                    disabled={isSubmittingPayment}
+                    className="w-full bg-[#2F5C3A] hover:bg-[#254A2E] disabled:bg-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-soft hover:-translate-y-0.5 transform flex items-center justify-center gap-2 cursor-pointer text-base"
                   >
-                    Przejdź do panelu pacjenta
+                    <span>Opłać wizytę przez Przelewy24 ({selectedVisitType?.price} zł)</span>
+                    <span className="text-lg">→</span>
                   </button>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl transition duration-300"
-                  >
-                    Wróć do strony głównej
-                  </button>
+
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      className="text-xs text-gray-500 hover:text-dark-green transition-colors font-medium py-1 inline-flex items-center gap-1"
+                    >
+                      ← Wróć do kalendarza (zmień termin)
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
