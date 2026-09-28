@@ -1,229 +1,122 @@
 import React from 'react';
-import { useState } from 'react';
-import { Brain, Heart, GraduationCap, Globe, User, Stethoscope, ChevronDown } from 'lucide-react';
+import { Brain, Heart, Users, CheckCircle2, Globe } from 'lucide-react';
 
 const Skills: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isAreasExpanded, setIsAreasExpanded] = useState(false);
-  const [isFirstVisitExpanded, setIsFirstVisitExpanded] = useState(false);
+  const targetGroups = [
+    'Praca z dziećmi od 6 lat',
+    'Dzieci i młodzież w wieku szkolnym',
+    'Konsultacje indywidualne – pomoc dorosłym',
+    'Trudności w relacjach rodzice-dzieci i problemy wychowawcze',
+    'Problemy w relacjach rówieśniczych i szkolnych',
+  ];
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const difficulties = [
+    'ADHD i zaburzenia koncentracji',
+    'Stany depresyjne i depresja',
+    'Lęki, fobie i zaburzenia lękowe',
+    'Trudności emocjonalne (niska samoocena, nieśmiałość, agresja)',
+    'Zaburzenia snu, bezsenność i nadmierny stres',
+    'Trudności szkolne i kryzysy życiowe',
+    'Zaburzenia emocjonalne i uzależnienia',
+  ];
 
-  const toggleAreasExpanded = () => {
-    setIsAreasExpanded(!isAreasExpanded);
-  };
-
-  const toggleFirstVisitExpanded = () => {
-    setIsFirstVisitExpanded(!isFirstVisitExpanded);
-  };
+  const services = [
+    'Konsultacje stacjonarne w gabinecie',
+    'Konsultacje indywidualne online',
+    'Diagnoza i interwencja kryzysowa',
+    'Terapia i wsparcie rodzinne',
+  ];
 
   return (
-    <section id="kompetencje" className="py-20 lg:py-28 bg-warm-beige">
+    <section id="kompetencje" className="py-20 lg:py-24 bg-warm-beige">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           
           {/* Header sekcji */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold text-dark-green mb-4 text-balance">
               Informacje o specjalizacji
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto text-pretty">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto text-pretty">
               Poznaj moje obszary działania i specjalizacje
             </p>
           </div>
 
-          {/* Siatka kafelków */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+          {/* 3 czytelne filary */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             
-            {/* O mnie */}
-            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="text-light-green mr-3">
-                  <User className="w-8 h-8" />
+            {/* 1. Komu pomagam */}
+            <div className="bg-white rounded-2xl p-7 shadow-soft hover:shadow-md transition-all duration-300 flex flex-col border border-gray-100/80">
+              <div className="flex items-center mb-6">
+                <div className="p-3 rounded-xl bg-light-green/40 text-dark-green mr-4">
+                  <Users className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-dark-green">
-                  Jak wygląda pierwsza wizyta?
-                </h3>
+                <div>
+                  <h3 className="text-xl font-bold text-dark-green">
+                    Komu pomagam
+                  </h3>
+                  <p className="text-xs text-gray-500">Grupa docelowa i relacje</p>
+                </div>
               </div>
-              <div className="text-gray-600 leading-relaxed flex-grow flex flex-col">
-                <div className="flex-grow">
-                  <p className="mb-3">
-                    Pierwsza wizyta to możliwość poznania się i zadania sobie nawzajem ważnych pytań dotyczących problemu.
-                  </p>
-                  <p className="mb-3">
-                    To czas, w którym możemy dokładniej przyjrzeć się tematowi, z którym przychodzisz.
-                  </p>
-                  <p className="mb-3">
-                    Wspólnie mamy wtedy możliwość ustalenia celu, który chcemy osiągnąć.
-                  </p>
-                  {isFirstVisitExpanded && (
-                    <p className="mb-3">
-                      Wyjaśniam również, jak widzę możliwość pracy nad tym problemem oraz ile czasu może ona zająć. To również okazja do omówienia zasad współpracy i odpowiadania na wszelkie pytania, które Cię niepokój.
-                    </p>
-                  )}
+              <ul className="space-y-3.5 flex-grow text-gray-600 text-sm leading-relaxed">
+                {targetGroups.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-light-green flex-shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 2. Obszary pracy i trudności */}
+            <div className="bg-white rounded-2xl p-7 shadow-soft hover:shadow-md transition-all duration-300 flex flex-col border border-gray-100/80">
+              <div className="flex items-center mb-6">
+                <div className="p-3 rounded-xl bg-accent-orange/20 text-accent-orange mr-4">
+                  <Heart className="w-6 h-6" />
                 </div>
-                <button
-                  onClick={toggleFirstVisitExpanded}
-                  className="mt-3 inline-flex items-center gap-1 self-start text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline rounded"
-                >
-                  <span>{isFirstVisitExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isFirstVisitExpanded ? 'rotate-180' : ''}`} />
-                </button>
+                <div>
+                  <h3 className="text-xl font-bold text-dark-green">
+                    Obszary pracy
+                  </h3>
+                  <p className="text-xs text-gray-500">Wyzwania i trudności</p>
+                </div>
+              </div>
+              <div className="space-y-3.5 flex-grow text-gray-600 text-sm leading-relaxed">
+                {difficulties.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent-orange/60 flex-shrink-0 mt-2" />
+                    <span>{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Obszary pracy */}
-            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="text-accent-orange mr-3">
-                  <Heart className="w-8 h-8" />
+            {/* 3. Formy pomocy i usługi */}
+            <div className="bg-white rounded-2xl p-7 shadow-soft hover:shadow-md transition-all duration-300 flex flex-col border border-gray-100/80 md:col-span-2 lg:col-span-1">
+              <div className="flex items-center mb-6">
+                <div className="p-3 rounded-xl bg-pastel-blue/20 text-dark-green mr-4">
+                  <Brain className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-dark-green">
-                  Obszary pracy
-                </h3>
-              </div>
-              <div className="text-gray-600 leading-relaxed flex-grow flex flex-col">
-                <div className="flex-grow">
-                  <p className="mb-4">
-                    Pomoc psychologiczna dzieciom i młodzieży w wieku szkolnym, pomoc dorosłym.
-                  </p>
-                  <p className="mb-4">
-                    Trudności emocjonalne, takie jak niskie poczucie własnej wartości, nieśmiałość, agresja.
-                  </p>
-                  <p className="mb-4">
-                    Stany depresyjne, lęki, fobie, zaburzenia snu, nadmierny stres.
-                  </p>
-                  {isAreasExpanded && (
-                    <>
-                      <p className="mb-4">
-                        Problemy w rodzinie, w relacjach rówieśniczych i szkolnych.
-                      </p>
-                      <p className="mb-4">
-                        Trudności w relacjach rodzice-dzieci, problemy wychowawcze.
-                      </p>
-                    </>
-                  )}
+                <div>
+                  <h3 className="text-xl font-bold text-dark-green">
+                    Formy pomocy
+                  </h3>
+                  <p className="text-xs text-gray-500">Konsultacje i wsparcie</p>
                 </div>
-                <button
-                  onClick={toggleAreasExpanded}
-                  className="mt-3 inline-flex items-center gap-1 self-start text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline rounded"
-                >
-                  <span>{isAreasExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isAreasExpanded ? 'rotate-180' : ''}`} />
-                </button>
               </div>
-            </div>
+              <ul className="space-y-3.5 flex-grow text-gray-600 text-sm leading-relaxed">
+                {services.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-pastel-blue flex-shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
 
-            {/* Choroby/Specjalizacje */}
-            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="text-light-green mr-3">
-                  <Stethoscope className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold text-dark-green">
-                  Specjalizacje
-                </h3>
-              </div>
-              <div className="text-gray-600 leading-relaxed flex-grow flex flex-col">
-                <div className="flex-grow">
-                  <p className="mb-2">• ADHD</p>
-                  <p className="mb-2">• Depresja</p>
-                  <p className="mb-2">• Kryzys życiowy</p>
-                  <p className="mb-2">• Lęki</p>
-                  <p className="mb-2">• Problemy wychowawcze</p>
-                  <p className="mb-2">• Bezsenność</p>
-                  {isExpanded && (
-                    <>
-                      <p className="mb-2">• Trudności szkolne</p>
-                      <p className="mb-2">• Uzależnienia</p>
-                      <p className="mb-2">• Zaburzenia emocjonalne</p>
-                      <p className="mb-2">• Zaburzenia koncentracji</p>
-                      <p className="mb-2">• Zaburzenia psychiczne</p>
-                      <p className="mb-2">• Zmęczenie</p>
-                      <p className="mb-2">• Zaburzenia lękowe</p>
-                      <p className="mb-2">• Konsultacja online</p>
-                    </>
-                  )}
-                </div>
-                <button
-                  onClick={toggleExpanded}
-                  className="mt-3 inline-flex items-center gap-1 self-start text-dark-green font-medium cursor-pointer hover:text-pastel-blue transition-colors duration-200 underline-offset-4 hover:underline rounded"
-                >
-                  <span>{isExpanded ? 'Pokaż mniej' : 'Pokaż więcej'}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Edukacja */}
-            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="text-accent-orange mr-3">
-                  <GraduationCap className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold text-dark-green">
-                  Edukacja
-                </h3>
-              </div>
-              <div className="text-gray-600 leading-relaxed">
-                <p className="font-medium text-dark-green mb-2">
-                  mgr Psycholog
-                </p>
-                <p className="text-sm">
-                  Uczelnia Biznesu i Nauk Stosowanych "Varsovia"
-                </p>
-              </div>
-            </div>
-
-            {/* Znajomość języków */}
-            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-              <div className="flex items-center mb-4">
-               <div className="text-light-green mr-3">
-                  <Globe className="w-8 h-8" />
-                </div>
-               <h3 className="text-lg font-semibold text-dark-green">
-                  Znajomość języków
-                </h3>
-              </div>
-              <div className="text-gray-600 leading-relaxed">
-                <p className="mb-2">Polski — język ojczysty</p>
-                <p>Angielski</p>
-              </div>
-            </div>
-
-            {/* Doświadczenie */}
-            <div className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-              <div className="flex items-center mb-4">
-               <div className="text-accent-orange mr-3">
-                  <Brain className="w-8 h-8" />
-                </div>
-               <h3 className="text-lg font-semibold text-dark-green">
-                  Usługi
-                </h3>
-              </div>
-              <div className="text-gray-600 leading-relaxed">
-                <div className="mb-2 flex">
-                  <span className="mr-2 flex-shrink-0">•</span>
-                  <span>Praca z&nbsp;dziećmi od&nbsp;6&nbsp;lat</span>
-                </div>
-                <div className="mb-2 flex">
-                  <span className="mr-2 flex-shrink-0">•</span>
-                  <span>Konsultacje indywidualne - dzieci, młodzież i&nbsp;dorośli</span>
-                </div>
-                <div className="mb-2 flex">
-                  <span className="mr-2 flex-shrink-0">•</span>
-                  <span>Terapia rodzinna</span>
-                </div>
-                <div className="flex">
-                  <span className="mr-2 flex-shrink-0">•</span>
-                  <span>Diagnoza i&nbsp;interwencja kryzysowa</span>
-                </div>
-                <div className="flex">
-                  <span className="mr-2 flex-shrink-0">•</span>
-                  <span>Konsultacje online</span>
-                </div>
+              {/* Języki w subtelnym bloku */}
+              <div className="mt-6 pt-5 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-600 bg-warm-beige/40 p-3 rounded-xl">
+                <Globe className="w-4 h-4 text-dark-green flex-shrink-0" />
+                <span>Konsultacje w języku <strong>polskim</strong> (ojczystym) oraz <strong>angielskim</strong></span>
               </div>
             </div>
 

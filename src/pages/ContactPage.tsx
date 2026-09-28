@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { SEO } from '../components/SEO';
+import { getContactPageSchema } from '../config/schemaData';
 import { Phone, Mail, MapPin, Send, Wifi, ChevronRight, Building2 } from 'lucide-react';
 import { COMPANY_INFO } from '../config/companyInfo';
+import { FAQ_DATA } from '../config/faqData';
 
 const ContactPage: React.FC = () => {
+  const contactSchema = useMemo(() => getContactPageSchema(), []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -78,27 +83,16 @@ const ContactPage: React.FC = () => {
     },
   ];
 
-  const faqs = [
-    {
-      q: 'Jak przygotować się do pierwszej wizyty?',
-      a: 'Nie potrzebujesz żadnych specjalnych przygotowań. Warto przemyśleć, co Cię do mnie sprowadza i jakie cele chciałbyś osiągnąć – ale to możemy ustalić również podczas spotkania.',
-    },
-    {
-      q: 'Czy na pierwszej wizycie musi być dziecko?',
-      a: 'Pierwsza konsultacja może odbyć się wyłącznie z rodzicem/opiekunem. Omówimy wtedy sytuację i ustalimy najlepszy plan dalszej pracy.',
-    },
-    {
-      q: 'Czy możliwe są konsultacje online?',
-      a: 'Tak, prowadzę konsultacje online za pomocą platformy wideokonferencyjnej. Jest to wygodna alternatywa, jeśli dojazd do gabinetu jest utrudniony.',
-    },
-    {
-      q: 'Jak długo trwa sesja i ile kosztuje?',
-      a: 'Standardowa konsultacja trwa 50 minut i kosztuje 200 zł. Płatność gotówką lub przelewem.',
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-warm-beige">
+      <SEO
+        title="Kontakt i Gabinety – mgr Joanna Kubiak | Swarzędz"
+        description="Skontaktuj się z gabinetem psychologicznym mgr Joanny Kubiak. Wizyty stacjonarne w Swarzędzu (Przychodnia Multi-Medic) oraz konsultacje psychologiczne online. Tel: +48 602 105 795."
+        keywords="kontakt psycholog Swarzędz, gabinet psychologiczny Swarzędz, Joanna Kubiak kontakt, psycholog Poznań i okolice"
+        canonical="https://www.joannakubiakpsycholog.pl/kontakt"
+        jsonLd={contactSchema}
+      />
       <TopBar />
       <Header />
 
@@ -347,11 +341,12 @@ const ContactPage: React.FC = () => {
             {/* FAQ */}
             <div className="bg-white rounded-2xl p-8 shadow-soft">
               <h2 className="text-xl font-bold text-dark-green mb-6">Najczęściej zadawane pytania</h2>
-              <div className="space-y-5">
-                {faqs.map((faq, i) => (
-                  <div key={i} className="border-b border-gray-100 last:border-0 pb-5 last:pb-0">
-                    <p className="font-semibold text-dark-green mb-1.5">{faq.q}</p>
-                    <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
+              <div className="space-y-6">
+                {FAQ_DATA.slice(0, 5).map((faq) => (
+                  <div key={faq.id} className="border-b border-gray-100 last:border-0 pb-5 last:pb-0">
+                    <p className="font-semibold text-dark-green mb-1.5">{faq.question}</p>
+                    <p className="text-gray-700 text-sm font-medium mb-1">{faq.shortAnswer}</p>
+                    <p className="text-gray-500 text-xs leading-relaxed">{faq.fullAnswer}</p>
                   </div>
                 ))}
               </div>

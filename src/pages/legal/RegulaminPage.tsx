@@ -1,8 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import LegalLayout from '../../components/legal/LegalLayout';
+import { SEO } from '../../components/SEO';
+import { getBreadcrumbSchema } from '../../config/schemaData';
 import { Link } from 'react-router-dom';
 
 export const RegulaminPage: React.FC = () => {
+  const breadcrumbSchema = useMemo(
+    () =>
+      getBreadcrumbSchema([
+        { name: 'Strona główna', path: '/' },
+        { name: 'Regulamin', path: '/regulamin' },
+      ]),
+    []
+  );
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -14,6 +25,12 @@ export const RegulaminPage: React.FC = () => {
       lastUpdated="20.09.2026"
       icon="file"
     >
+      <SEO
+        title="Regulamin świadczenia usług | mgr Joanna Kubiak"
+        description="Regulamin świadczenia usług psychologicznych i rezerwacji wizyt online w gabinecie mgr Joanny Kubiak. Informacje prawne, warunki płatności i odwoływania sesji."
+        canonical="https://www.joannakubiakpsycholog.pl/regulamin"
+        jsonLd={breadcrumbSchema}
+      />
       <div className="space-y-8 text-gray-700 text-sm leading-relaxed">
 
         {/* Sekcja 1 */}

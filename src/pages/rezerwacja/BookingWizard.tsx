@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
 import { UserPlus, LogIn, Calendar, X, CheckCircle } from 'lucide-react';
 import { LandingPage } from '../LandingPage';
 import { PacjentDashboard } from '../panel/pacjent/PacjentDashboard';
+import { SEO } from '../../components/SEO';
+import { getBreadcrumbSchema } from '../../config/schemaData';
 import Cal, { getCalApi } from "@calcom/embed-react";
 
 interface VisitType {
@@ -48,6 +50,25 @@ export const BookingWizard: React.FC = () => {
   const location = useLocation();
   const fromPath = (location.state as any)?.from || '/';
   const showDashboardBg = fromPath.includes('/panel/pacjent/dashboard');
+
+  const bookingBreadcrumb = useMemo(
+    () =>
+      getBreadcrumbSchema([
+        { name: 'Strona główna', path: '/' },
+        { name: 'Rezerwacja wizyty', path: '/rezerwacja' },
+      ]),
+    []
+  );
+
+  const seoElement = (
+    <SEO
+      title="Rezerwacja wizyty – Konsultacja psychologiczna | mgr Joanna Kubiak"
+      description="Zarezerwuj wizytę u psychologa dzieci i młodzieży mgr Joanny Kubiak. Dogodne terminy konsultacji stacjonarnej w Swarzędzu oraz konsultacji online z bezpieczną płatnością."
+      keywords="rezerwacja wizyty psycholog, umów wizytę Swarzędz, psycholog dziecięcy wizyta, konsultacje psychologiczne rezerwacja"
+      canonical="https://www.joannakubiakpsycholog.pl/rezerwacja"
+      jsonLd={bookingBreadcrumb}
+    />
+  );
 
   // Sprawdzenie sesji i autoryzacji
   useEffect(() => {
@@ -196,6 +217,7 @@ export const BookingWizard: React.FC = () => {
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-light-green-bg flex items-center justify-center">
+        {seoElement}
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-10 h-10">
             <div className="absolute inset-0 rounded-full border-4 border-light-green/30"></div>
@@ -211,6 +233,7 @@ export const BookingWizard: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="relative min-h-screen">
+        {seoElement}
         {/* Zamazane tło */}
         <div className="filter blur-sm md:blur-md pointer-events-none select-none fixed inset-0 z-0 overflow-hidden opacity-50 scale-[1.02]">
           <LandingPage />
@@ -280,6 +303,7 @@ export const BookingWizard: React.FC = () => {
   // Zalogowany – Kreator w oknie modalnym nad zamazanym tłem (LandingPage lub PacjentDashboard)
   return (
     <div className="relative min-h-screen">
+      {seoElement}
       {/* Zamazane tło */}
       <div className="filter blur-sm md:blur-md pointer-events-none select-none fixed inset-0 z-0 overflow-hidden opacity-50 scale-[1.02]">
         {showDashboardBg ? <PacjentDashboard /> : <LandingPage />}
