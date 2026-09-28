@@ -45,4 +45,4 @@ Disallow: /profil
 Disallow: /unauthorized
 
 # Mapa witryny
-Sitemap: https://www.joannakubiakpsycholog.pl/sitemap.xml
+Sitemap: https://joannakubiakpsycholog.pl/sitemap.xml

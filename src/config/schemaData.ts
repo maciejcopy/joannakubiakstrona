@@ -1,7 +1,7 @@
 import { COMPANY_INFO } from './companyInfo';
 import { FAQ_DATA } from './faqData';
 
-const DEFAULT_BASE_URL = 'https://www.joannakubiakpsycholog.pl';
+const DEFAULT_BASE_URL = 'https://joannakubiakpsycholog.pl';
 
 const getBaseUrl = (overrideUrl?: string): string => {
   if (overrideUrl) return overrideUrl;

@@ -90,7 +90,7 @@ const ContactPage: React.FC = () => {
         title="Kontakt i Gabinety – mgr Joanna Kubiak | Swarzędz"
         description="Skontaktuj się z gabinetem psychologicznym mgr Joanny Kubiak. Wizyty stacjonarne w Swarzędzu (Przychodnia Multi-Medic) oraz konsultacje psychologiczne online. Tel: +48 602 105 795."
         keywords="kontakt psycholog Swarzędz, gabinet psychologiczny Swarzędz, Joanna Kubiak kontakt, psycholog Poznań i okolice"
-        canonical="https://www.joannakubiakpsycholog.pl/kontakt"
+        canonical="https://joannakubiakpsycholog.pl/kontakt"
         jsonLd={contactSchema}
       />
       <TopBar />

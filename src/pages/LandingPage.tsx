@@ -19,7 +19,7 @@ export const LandingPage: React.FC = () => {
         title="mgr Joanna Kubiak – Psycholog dzieci i młodzieży | Swarzędz & Online"
         description="mgr Joanna Kubiak – psycholog dziecięcy i młodzieży. Profesjonalna pomoc psychologiczna dla dzieci (od 6 lat), młodzieży i rodziców. Gabinet w Swarzędzu oraz konsultacje online."
         keywords="psycholog dziecięcy Swarzędz, psycholog młodzieży Poznań, pomoc psychologiczna Swarzędz, terapia dzieci, konsultacje psychologiczne online, Joanna Kubiak psycholog"
-        canonical="https://www.joannakubiakpsycholog.pl/"
+        canonical="https://joannakubiakpsycholog.pl/"
         ogType="website"
         jsonLd={mainSchema}
       />

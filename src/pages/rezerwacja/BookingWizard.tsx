@@ -170,7 +170,7 @@ export const BookingWizard: React.FC = () => {
       title="Rezerwacja wizyty – Konsultacja psychologiczna | mgr Joanna Kubiak"
       description="Zarezerwuj wizytę u psychologa dzieci i młodzieży mgr Joanny Kubiak. Dogodne terminy konsultacji stacjonarnej w Swarzędzu oraz konsultacji online z bezpieczną płatnością."
       keywords="rezerwacja wizyty psycholog, umów wizytę Swarzędz, psycholog dziecięcy wizyta, konsultacje psychologiczne rezerwacja"
-      canonical="https://www.joannakubiakpsycholog.pl/rezerwacja"
+      canonical="https://joannakubiakpsycholog.pl/rezerwacja"
       jsonLd={bookingBreadcrumb}
     />
   );

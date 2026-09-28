@@ -28,7 +28,7 @@ export const RegulaminPage: React.FC = () => {
       <SEO
         title="Regulamin świadczenia usług | mgr Joanna Kubiak"
         description="Regulamin świadczenia usług psychologicznych i rezerwacji wizyt online w gabinecie mgr Joanny Kubiak. Informacje prawne, warunki płatności i odwoływania sesji."
-        canonical="https://www.joannakubiakpsycholog.pl/regulamin"
+        canonical="https://joannakubiakpsycholog.pl/regulamin"
         jsonLd={breadcrumbSchema}
       />
       <div className="space-y-8 text-gray-700 text-sm leading-relaxed">
@@ -39,7 +39,7 @@ export const RegulaminPage: React.FC = () => {
             1. Postanowienia Ogólne
           </h2>
           <p>
-            <strong>1.1.</strong> Niniejszy Regulamin określa zasady korzystania z serwisu internetowego dostępnego pod adresem <span className="font-medium text-dark-green">www.joannakubiakpsycholog.pl</span> (dalej: „Serwis"), w tym zasady świadczenia usług drogą elektroniczną (prowadzenie konta w Panelu Pacjenta, obsługa procesu Rezerwacji), zasady rezerwacji wizyt psychologicznych oraz zasady dokonywania płatności online za te usługi.
+            <strong>1.1.</strong> Niniejszy Regulamin określa zasady korzystania z serwisu internetowego dostępnego pod adresem <span className="font-medium text-dark-green">joannakubiakpsycholog.pl</span> (dalej: „Serwis"), w tym zasady świadczenia usług drogą elektroniczną (prowadzenie konta w Panelu Pacjenta, obsługa procesu Rezerwacji), zasady rezerwacji wizyt psychologicznych oraz zasady dokonywania płatności online za te usługi.
           </p>
           <p>
             <strong>1.2.</strong> Usługodawcą jest <strong>"Open Mind" Joanna Kubiak</strong>, z siedzibą w Gruszczyn ul. Moniuszki 39, NIP: 7792080715, REGON: 301134443, adres e-mail: <a href="mailto:joannakubiak102@gmail.com" className="text-dark-green font-semibold underline">joannakubiak102@gmail.com</a>, numer telefonu: +48 602 105 795 (dalej: „Usługodawca").
@@ -58,7 +58,7 @@ export const RegulaminPage: React.FC = () => {
             2. Definicje
           </h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li><strong>Serwis</strong> — strona internetowa www.joannakubiakpsycholog.pl.</li>
+            <li><strong>Serwis</strong> — strona internetowa joannakubiakpsycholog.pl.</li>
             <li><strong>Użytkownik</strong> — osoba fizyczna korzystająca z Serwisu, w tym dokonująca Rezerwacji.</li>
             <li><strong>Konsument</strong> — Użytkownik będący osobą fizyczną dokonującą Rezerwacji niezwiązanej bezpośrednio z jej działalnością gospodarczą lub zawodową.</li>
             <li><strong>Usługa</strong> — usługa konsultacji psychologicznej świadczona przez Usługodawcę, dostępna w dwóch wariantach: online oraz stacjonarnie.</li>

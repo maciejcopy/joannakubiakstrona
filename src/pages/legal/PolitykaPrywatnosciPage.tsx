@@ -27,7 +27,7 @@ export const PolitykaPrywatnosciPage: React.FC = () => {
       <SEO
         title="Polityka prywatności i RODO | mgr Joanna Kubiak"
         description="Polityka prywatności i informacje o przetwarzaniu danych osobowych (RODO) w gabinecie psychologicznym mgr Joanny Kubiak. Zasady bezpieczeństwa, szyfrowanie SSL i ochrona danych pacjentów."
-        canonical="https://www.joannakubiakpsycholog.pl/polityka-prywatnosci"
+        canonical="https://joannakubiakpsycholog.pl/polityka-prywatnosci"
         jsonLd={breadcrumbSchema}
       />
       <div className="space-y-8 text-gray-700 text-sm leading-relaxed">
@@ -38,7 +38,7 @@ export const PolitykaPrywatnosciPage: React.FC = () => {
             1. Postanowienia Ogólne
           </h2>
           <p>
-            <strong>1.1.</strong> Niniejsza polityka prywatności ma charakter informacyjny i określa zasady przetwarzania oraz ochrony danych osobowych przekazanych przez Użytkowników w związku z korzystaniem przez nich z serwisu internetowego <span className="font-medium text-dark-green">www.joannakubiakpsycholog.pl</span> (dalej: „Serwis"), w tym w szczególności w związku z rezerwacją wizyt oraz dokonywaniem płatności online za usługi psychologiczne.
+            <strong>1.1.</strong> Niniejsza polityka prywatności ma charakter informacyjny i określa zasady przetwarzania oraz ochrony danych osobowych przekazanych przez Użytkowników w związku z korzystaniem przez nich z serwisu internetowego <span className="font-medium text-dark-green">joannakubiakpsycholog.pl</span> (dalej: „Serwis"), w tym w szczególności w związku z rezerwacją wizyt oraz dokonywaniem płatności online za usługi psychologiczne.
           </p>
           <p>
             <strong>1.2.</strong> Administratorem danych osobowych zawartych w Serwisie jest <strong>"Open Mind" Joanna Kubiak</strong>, z siedzibą w Gruszczyn ul. Moniuszki 39, NIP: 7792080715, REGON: 301134443, adres e-mail: <a href="mailto:joannakubiak102@gmail.com" className="text-dark-green font-semibold underline">joannakubiak102@gmail.com</a> (dalej: „Administrator").

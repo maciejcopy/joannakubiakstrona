@@ -104,11 +104,11 @@ Cel: Opatrzenie każdej publicznej podstrony odpowiednim zestawem danych struktu
 Cel: Precyzyjna komunikacja z robotami wyszukiwarek i agentami AI.
 
 1. **Utworzenie `public/sitemap.xml`:** ✅
-   * Zawiera wyłącznie publiczne adresy kanoniczne z domeną www.joannakubiakpsycholog.pl (priorytety 1.0, 0.9, 0.8, 0.3).
+   * Zawiera wyłącznie publiczne adresy kanoniczne z domeną joannakubiakpsycholog.pl (priorytety 1.0, 0.9, 0.8, 0.3).
 2. **Utworzenie `public/robots.txt`:** ✅
    * Dozwolone roboty: Standardowe wyszukiwarki (`User-agent: *`) oraz boty AI (`GPTBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`, `Google-Extended`).
    * Zablokowane katalogi aplikacji prywatnej: `/panel/`, `/auth/`, `/profil`, `/unauthorized`.
-   * Wskazanie sitemapy: `Sitemap: https://www.joannakubiakpsycholog.pl/sitemap.xml`.
+   * Wskazanie sitemapy: `Sitemap: https://joannakubiakpsycholog.pl/sitemap.xml`.
 
 ---
 
