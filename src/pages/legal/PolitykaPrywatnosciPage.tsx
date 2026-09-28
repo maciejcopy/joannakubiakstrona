@@ -1,7 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import LegalLayout from '../../components/legal/LegalLayout';
+import { SEO } from '../../components/SEO';
+import { getBreadcrumbSchema } from '../../config/schemaData';
 
 export const PolitykaPrywatnosciPage: React.FC = () => {
+  const breadcrumbSchema = useMemo(
+    () =>
+      getBreadcrumbSchema([
+        { name: 'Strona główna', path: '/' },
+        { name: 'Polityka prywatności', path: '/polityka-prywatnosci' },
+      ]),
+    []
+  );
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -13,6 +24,12 @@ export const PolitykaPrywatnosciPage: React.FC = () => {
       lastUpdated="20.09.2026"
       icon="shield"
     >
+      <SEO
+        title="Polityka prywatności i RODO | mgr Joanna Kubiak"
+        description="Polityka prywatności i informacje o przetwarzaniu danych osobowych (RODO) w gabinecie psychologicznym mgr Joanny Kubiak. Zasady bezpieczeństwa, szyfrowanie SSL i ochrona danych pacjentów."
+        canonical="https://www.joannakubiakpsycholog.pl/polityka-prywatnosci"
+        jsonLd={breadcrumbSchema}
+      />
       <div className="space-y-8 text-gray-700 text-sm leading-relaxed">
 
         {/* Sekcja 1 */}

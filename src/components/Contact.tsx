@@ -8,7 +8,7 @@ const Contact: React.FC = () => {
   ];
 
   const pricingItems = [
-    { label: 'Konsultacja indywidualna', duration: '50 min', price: '200 zł' },
+    { label: 'Konsultacja stacjonarna', duration: '50 min', price: '220 zł' },
     { label: 'Konsultacja online', duration: '50 min', price: '200 zł' },
   ];
 
@@ -36,12 +36,12 @@ const Contact: React.FC = () => {
             </h3>
             <div className="space-y-4">
               {pricingItems.map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                  <div>
+                <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 gap-4">
+                  <div className="min-w-0">
                     <p className="font-medium text-dark-green">{item.label}</p>
                     <p className="text-sm text-gray-400">{item.duration}</p>
                   </div>
-                  <span className="text-xl font-bold text-pastel-blue">{item.price}</span>
+                  <span className="text-xl font-bold text-pastel-blue whitespace-nowrap flex-shrink-0">{item.price}</span>
                 </div>
               ))}
             </div>

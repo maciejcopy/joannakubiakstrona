@@ -1,0 +1,48 @@
+# robots.txt dla joannakubiakpsycholog.pl
+
+# Standardowe roboty wyszukiwarek (Google, Bing itp.)
+User-agent: *
+Allow: /
+Disallow: /panel/
+Disallow: /auth/
+Disallow: /profil
+Disallow: /unauthorized
+
+# Wyszukiwarki AI i agenci wiedzy (OpenAI, ChatGPT, Perplexity, Anthropic Claude, Google AI)
+User-agent: GPTBot
+Allow: /
+Disallow: /panel/
+Disallow: /auth/
+Disallow: /profil
+Disallow: /unauthorized
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /panel/
+Disallow: /auth/
+Disallow: /profil
+Disallow: /unauthorized
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /panel/
+Disallow: /auth/
+Disallow: /profil
+Disallow: /unauthorized
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /panel/
+Disallow: /auth/
+Disallow: /profil
+Disallow: /unauthorized
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /panel/
+Disallow: /auth/
+Disallow: /profil
+Disallow: /unauthorized
+
+# Mapa witryny
+Sitemap: https://www.joannakubiakpsycholog.pl/sitemap.xml
