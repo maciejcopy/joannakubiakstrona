@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
 import { FAQ_DATA, FAQItem } from '../config/faqData';
 

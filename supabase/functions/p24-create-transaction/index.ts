@@ -5,7 +5,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const P24_MERCHANT_ID = Deno.env.get("P24_MERCHANT_ID")!;
 const P24_CRC_KEY = Deno.env.get("P24_CRC_KEY")!;
 const P24_REPORT_KEY = Deno.env.get("P24_REPORT_KEY")!;
-const P24_API_BASE = "https://sandbox.przelewy24.pl/api/v1"; // TODO: zmienić na produkcję w kroku 6
+const P24_API_BASE = Deno.env.get("P24_API_BASE") || "https://secure.przelewy24.pl/api/v1";
 const URL_RETURN_DEFAULT = "https://joannakubiakpsycholog.pl/panel/pacjent/dashboard";
 
 const CORS_HEADERS = {
@@ -203,7 +203,8 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Błąd rejestracji transakcji P24", details: p24Data }, 502);
     }
 
-    return json({ redirectUrl: `https://sandbox.przelewy24.pl/trnRequest/${p24Data.data.token}` });
+    const p24Host = P24_API_BASE.replace(/\/api\/v1\/?$/, "");
+    return json({ redirectUrl: `${p24Host}/trnRequest/${p24Data.data.token}` });
   } catch (err) {
     console.error("p24-create-transaction error:", err);
     return json({ error: "Błąd serwera" }, 500);
