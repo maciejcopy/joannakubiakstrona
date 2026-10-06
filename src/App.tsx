@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
 import ContactPage from './pages/ContactPage';
@@ -109,12 +108,16 @@ function App() {
           } 
         />
         <Route 
-          path="/panel/admin/kalendarz" 
+          path="/panel/admin/wizyty" 
           element={
             <AuthGuard allowedRoles={['admin']}>
               <AdminKalendarz />
             </AuthGuard>
           } 
+        />
+        <Route 
+          path="/panel/admin/kalendarz" 
+          element={<Navigate to="/panel/admin/wizyty" replace />} 
         />
         <Route 
           path="/panel/admin/bookings/:id" 

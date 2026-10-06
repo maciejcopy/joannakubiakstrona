@@ -21,8 +21,8 @@ export const adminSidebarItems: SidebarItem[] = [
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
-    label: 'Kalendarz',
-    path: '/panel/admin/kalendarz',
+    label: 'Wizyty',
+    path: '/panel/admin/wizyty',
     icon: <Calendar className="h-5 w-5" />,
   },
   {

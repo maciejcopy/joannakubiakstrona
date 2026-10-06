@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { adminSidebarItems } from '../../../config/sidebarConfig';
@@ -61,6 +61,22 @@ export const AdminDashboard: React.FC = () => {
           .select('*', { count: 'exact', head: true })
           .eq('role', 'client');
 
+        // Fetch confirmed status id and count
+        const { data: confirmedStatus } = await supabase
+          .from('booking_statuses')
+          .select('id')
+          .eq('name', 'confirmed')
+          .maybeSingle();
+
+        let confirmedCount = 0;
+        if (confirmedStatus?.id) {
+          const { count } = await supabase
+            .from('bookings')
+            .select('*', { count: 'exact', head: true })
+            .eq('status_id', confirmedStatus.id);
+          confirmedCount = count || 0;
+        }
+
         // Fetch recent bookings
         const { data: bookingsData } = await supabase
           .from('bookings')
@@ -90,7 +106,7 @@ export const AdminDashboard: React.FC = () => {
 
         setStats({
           totalBookings: totalCount || 0,
-          confirmedBookings: bookingsData?.filter((b: any) => b.booking_statuses?.name === 'confirmed').length || 0,
+          confirmedBookings: confirmedCount,
           totalClients: clientsCount || 0
         });
 
