@@ -5,6 +5,9 @@ import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
 import { DatePicker } from '../../../components/DatePicker';
 import { CustomSelect } from '../../../components/CustomSelect';
+import { adminSidebarItems } from '../../../config/sidebarConfig';
+import { Trash2 } from 'lucide-react';
+import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 
 interface ClientProfile {
   id: string;
@@ -47,6 +50,9 @@ export const AdminKalendarz: React.FC = () => {
   const [visitTypes, setVisitTypes] = useState<VisitType[]>([]);
   const [statuses, setStatuses] = useState<{ id: string; name: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const navigate = useNavigate();
   
   // Stany filtrów
@@ -71,63 +77,7 @@ export const AdminKalendarz: React.FC = () => {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
 
-  const sidebarItems = [
-    {
-      label: 'Dashboard',
-      path: '/panel/admin/dashboard',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Kalendarz',
-      path: '/panel/admin/kalendarz',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Klienci',
-      path: '/panel/admin/klienci',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Typy Sesji',
-      path: '/panel/admin/sesje',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-      )
-    },
-    {
-      label: 'Ustawienia',
-      path: '/panel/admin/ustawienia',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Mój Profil',
-      path: '/profil',
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      )
-    }
-  ];
+
 
   const fetchData = async () => {
     try {
@@ -304,8 +254,60 @@ export const AdminKalendarz: React.FC = () => {
     return true;
   });
 
+  const isAllFilteredSelected =
+    filteredBookings.length > 0 &&
+    filteredBookings.every((b) => selectedBookingIds.includes(b.id));
+
+  const handleToggleSelectAll = () => {
+    if (isAllFilteredSelected) {
+      const filteredIds = new Set(filteredBookings.map((b) => b.id));
+      setSelectedBookingIds((prev) => prev.filter((id) => !filteredIds.has(id)));
+    } else {
+      const newIds = new Set([...selectedBookingIds, ...filteredBookings.map((b) => b.id)]);
+      setSelectedBookingIds(Array.from(newIds));
+    }
+  };
+
+  const handleToggleSelectRow = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedBookingIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDeletePermanent = async () => {
+    if (selectedBookingIds.length === 0) return;
+    try {
+      setIsDeletingBulk(true);
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .in('id', selectedBookingIds);
+
+      if (error) throw error;
+
+      toast.success(
+        `Pomyślnie trwale usunięto ${selectedBookingIds.length} ${
+          selectedBookingIds.length === 1
+            ? 'wizytę'
+            : selectedBookingIds.length >= 2 && selectedBookingIds.length <= 4
+            ? 'wizyty'
+            : 'wizyt'
+        }.`
+      );
+      setSelectedBookingIds([]);
+      setIsBulkDeleteModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      console.error('Błąd usuwania rezerwacji:', err);
+      toast.error('Nie udało się usunąć rezerwacji: ' + (err.message || 'Błąd bazy danych'));
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
   return (
-    <PanelLayout title="Kalendarz Wizyt" role="admin" sidebarItems={sidebarItems}>
+    <PanelLayout title="Wizyty" role="admin" sidebarItems={adminSidebarItems}>
       <div className="space-y-6">
         <div className="flex justify-between items-center pb-4 border-b border-gray-100 flex-wrap gap-4">
           <p className="text-sm text-gray-500">Zarządzaj terminami i dodawaj rezerwacje offline.</p>
@@ -408,14 +410,59 @@ export const AdminKalendarz: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Pasek akcji masowych (Bulk Actions Bar) */}
+            {selectedBookingIds.length > 0 && (
+              <div className="p-4 bg-red-50/80 border border-red-200/80 rounded-2xl flex items-center justify-between flex-wrap gap-3 animate-fade-in shadow-xs">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-red-600 text-white text-xs font-bold shadow-xs">
+                    {selectedBookingIds.length}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    Zaznaczono {selectedBookingIds.length}{' '}
+                    {selectedBookingIds.length === 1
+                      ? 'wizytę'
+                      : selectedBookingIds.length >= 2 && selectedBookingIds.length <= 4
+                      ? 'wizyty'
+                      : 'wizyt'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBookingIds([])}
+                    className="px-3.5 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition"
+                  >
+                    Odznacz wszystkie
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsBulkDeleteModalOpen(true)}
+                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Usuń zaznaczone ({selectedBookingIds.length})
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center">
               <h4 className="text-md font-serif font-bold text-[#2F5C3A]">Zaplanowane wizyty w systemie</h4>
               <span className="text-xs text-gray-500">Znaleziono: {filteredBookings.length}</span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto bg-white rounded-2xl border border-gray-200 shadow-2xs">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="w-12 px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isAllFilteredSelected}
+                        onChange={handleToggleSelectAll}
+                        aria-label="Zaznacz wszystkie wizyty"
+                        className="w-4 h-4 text-[#2F5C3A] rounded border-gray-300 focus:ring-[#2F5C3A]/20 cursor-pointer transition"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Klient</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Usługa</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
@@ -425,82 +472,105 @@ export const AdminKalendarz: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
-                  {filteredBookings.map((booking) => (
-                    <tr
-                      key={booking.id}
-                      onClick={() => navigate(`/panel/admin/bookings/${booking.id}`)}
-                      className="cursor-pointer hover:bg-[#F6FAF4]/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
-                        {booking.profiles?.full_name || 'Klient offline'}
-                        {booking.is_first_visit && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                            1sza wizyta
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {booking.visit_types?.title}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {new Date(booking.scheduled_at).toLocaleString('pl-PL')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {booking.source === 'website' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
-                            Strona WWW
-                          </span>
-                        ) : booking.source === 'znany_lekarz' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-                            ZnanyLekarz
-                          </span>
-                        ) : booking.source === 'wspieramy_mentalnie' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                            WspieramyM.
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-50 text-gray-600 border border-gray-200">
-                            Ręczna (Offline)
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm transition duration-300 ${
-                          booking.booking_statuses?.name === 'confirmed'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
-                            : booking.booking_statuses?.name === 'completed'
-                            ? 'bg-blue-50 text-blue-700 border-blue-200/50'
-                            : booking.booking_statuses?.name === 'cancelled'
-                            ? 'bg-red-50 text-red-700 border-red-200/50'
-                            : 'bg-amber-50 text-amber-700 border-amber-200/50'
-                        }`}>
-                          {booking.booking_statuses?.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {booking.payment_statuses ? (
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-2xs transition duration-300 ${
-                            booking.payment_statuses.name === 'refund_pending'
-                              ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/30 font-extrabold'
-                              : booking.payment_statuses.name === 'refunded'
-                              ? 'bg-purple-50 text-purple-700 border-purple-200'
-                              : booking.payment_statuses.name === 'paid_online'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : booking.payment_statuses.name === 'paid_on_site'
-                              ? 'bg-teal-50 text-teal-700 border-teal-200'
-                              : 'bg-gray-50 text-gray-600 border-gray-200'
+                  {filteredBookings.map((booking) => {
+                    const isSelected = selectedBookingIds.includes(booking.id);
+                    return (
+                      <tr
+                        key={booking.id}
+                        onClick={() => navigate(`/panel/admin/bookings/${booking.id}`)}
+                        className={`group cursor-pointer transition-colors duration-150 ${
+                          isSelected
+                            ? 'bg-[#EBF4E9]/70 hover:bg-[#EBF4E9]'
+                            : 'hover:bg-[#F6FAF4]/60'
+                        }`}
+                      >
+                        <td
+                          className="w-12 px-4 py-4 text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => handleToggleSelectRow(booking.id, e as any)}
+                            aria-label={`Zaznacz wizytę ${booking.profiles?.full_name || ''}`}
+                            className={`w-4 h-4 text-[#2F5C3A] rounded border-gray-300 focus:ring-[#2F5C3A]/20 cursor-pointer transition-all duration-150 ${
+                              isSelected
+                                ? 'opacity-100 scale-100 ring-2 ring-[#2F5C3A]/30'
+                                : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
+                            }`}
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
+                          {booking.profiles?.full_name || 'Klient offline'}
+                          {booking.is_first_visit && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              1sza wizyta
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {booking.visit_types?.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {new Date(booking.scheduled_at).toLocaleString('pl-PL')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {booking.source === 'website' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
+                              Strona WWW
+                            </span>
+                          ) : booking.source === 'znany_lekarz' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                              ZnanyLekarz
+                            </span>
+                          ) : booking.source === 'wspieramy_mentalnie' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                              WspieramyM.
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-50 text-gray-600 border border-gray-200">
+                              Ręczna (Offline)
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm transition duration-300 ${
+                            booking.booking_statuses?.name === 'confirmed'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
+                              : booking.booking_statuses?.name === 'completed'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200/50'
+                              : booking.booking_statuses?.name === 'cancelled'
+                              ? 'bg-red-50 text-red-700 border-red-200/50'
+                              : 'bg-amber-50 text-amber-700 border-amber-200/50'
                           }`}>
-                            {booking.payment_statuses.label}
+                            {booking.booking_statuses?.label}
                           </span>
-                        ) : (
-                          <span className="text-gray-400 text-xs">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {booking.payment_statuses ? (
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-2xs transition duration-300 ${
+                              booking.payment_statuses.name === 'refund_pending'
+                                ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/30 font-extrabold'
+                                : booking.payment_statuses.name === 'refunded'
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                : booking.payment_statuses.name === 'paid_online'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : booking.payment_statuses.name === 'paid_on_site'
+                                ? 'bg-teal-50 text-teal-700 border-teal-200'
+                                : 'bg-gray-50 text-gray-600 border-gray-200'
+                            }`}>
+                              {booking.payment_statuses.label}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {filteredBookings.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                         Brak pasujących rezerwacji w kalendarzu.
                       </td>
                     </tr>
@@ -657,6 +727,21 @@ export const AdminKalendarz: React.FC = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        isOpen={isBulkDeleteModalOpen}
+        title="Trwałe usunięcie zaznaczonych wizyt"
+        count={selectedBookingIds.length}
+        description={`Czy na pewno chcesz bezpowrotnie usunąć ${selectedBookingIds.length} ${
+          selectedBookingIds.length === 1
+            ? 'zaznaczoną wizytę'
+            : selectedBookingIds.length >= 2 && selectedBookingIds.length <= 4
+            ? 'zaznaczone wizyty'
+            : 'zaznaczonych wizyt'
+        } z bazy danych?`}
+        isDeleting={isDeletingBulk}
+        onConfirm={handleBulkDeletePermanent}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+      />
     </PanelLayout>
   );
 };

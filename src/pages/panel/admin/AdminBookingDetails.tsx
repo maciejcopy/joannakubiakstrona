@@ -4,8 +4,9 @@ import { supabase } from '../../../lib/supabase';
 import { PanelLayout } from '../../../components/PanelLayout';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
+import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 import { adminSidebarItems } from '../../../config/sidebarConfig';
-import { AlertCircle, CheckCircle2, CreditCard, MapPin, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, CheckCircle2, CreditCard, MapPin, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { CustomSelect, SelectOption } from '../../../components/CustomSelect';
 
 const getBookingStatusBadge = (item: SelectOption) => {
@@ -221,11 +222,6 @@ export const AdminBookingDetails: React.FC = () => {
       if (error) throw error;
 
       setSelectedPaymentStatusId(refundedStatus.id);
-      setBooking(prev => prev ? {
-        ...prev,
-        payment_statuses: refundedStatus
-      } : null);
-
       toast.success('Płatność została oznaczona jako zwrócona!');
     } catch (err: any) {
       toast.error('Błąd podczas aktualizacji: ' + err.message);
@@ -233,6 +229,32 @@ export const AdminBookingDetails: React.FC = () => {
       setMarkingRefunded(false);
     }
   };
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeletePermanent = async () => {
+    if (!booking) return;
+    try {
+      setDeleting(true);
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      toast.success('Wizyta została trwale usunięta z bazy danych.');
+      setIsDeleteModalOpen(false);
+      navigate('/panel/admin/wizyty');
+    } catch (err: any) {
+      console.error('Błąd usuwania rezerwacji:', err);
+      toast.error('Nie udało się usunąć rezerwacji: ' + (err.message || 'Błąd bazy danych'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -433,6 +455,14 @@ export const AdminBookingDetails: React.FC = () => {
               >
                 {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
               </button>
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition duration-200"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                Usuń rezerwację trwale
+              </button>
               <Link
                 to="/panel/admin/dashboard"
                 className="w-full py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold flex items-center justify-center transition duration-200"
@@ -453,6 +483,15 @@ export const AdminBookingDetails: React.FC = () => {
         type="danger"
         onConfirm={() => handleUpdate()}
         onCancel={() => setIsConfirmOpen(false)}
+      />
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Trwałe usunięcie rezerwacji"
+        count={1}
+        itemDescription={booking ? `${booking.profiles?.full_name || 'Klient'} • ${booking.visit_types?.title || 'Wizyta'} • ${new Date(booking.scheduled_at).toLocaleString('pl-PL')}` : undefined}
+        isDeleting={deleting}
+        onConfirm={handleDeletePermanent}
+        onClose={() => setIsDeleteModalOpen(false)}
       />
     </PanelLayout>
   );
